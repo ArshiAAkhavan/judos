@@ -1,0 +1,24 @@
+concurrency: 1
+log-level: INFO
+repos:
+  - git@github.com:ArshiAAkhavan/test-os
+  - git@github.com:ArshiAAkhavan/test-os
+stages:
+  HW1:
+    path: ./hw1
+    date_limit:
+      from: 2022_1_12
+      to: 2022_2_12
+    image: delete_this:os-hw1-0.0.5
+    entrypoint: ""
+    commands:
+      - python3 judge.py
+  HW2:
+    path: ./hw1
+    date_limit:
+      from: 2022_1_12
+      to: 2022_2_12
+    image: python:3.9
+    entrypoint: ""
+    commands:
+      - python3 judge.py
