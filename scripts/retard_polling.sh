@@ -17,7 +17,7 @@ function latest_update {
     if [ "$file" = "score.txt" ];then
       continue
     fi
-    echo `env -i git log --format='%ad' --date=raw --follow -- $HW_PATH/$file | awk '{print$1}' | head -n1`
+    echo `env -i git log  --format='%ad' --date=raw --follow -- $HW_PATH/$file | awk '{print$1}' | head -n1`
   done
 }
 
@@ -34,7 +34,7 @@ else
 fi
 
 log $HW_PATH
-latest_score=`(cd $HW_PATH && env -i git log --format="%ad" --date=raw --follow -- $HW_PATH/score.txt | awk '{print$1}' | head -n1)`
+latest_score=`(cd $HW_PATH && env -i git log  --format="%ad" --date=raw --follow -- $HW_PATH/score.txt | awk '{print$1}' | head -n1)`
 latest_commit=`latest_update | sort | uniq | sort -r | head -n1`
 
 greater=`printf "${latest_commit}\n${latest_score}" | sort -r | head -n1`

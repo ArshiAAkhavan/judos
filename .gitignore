@@ -1,1 +1,7 @@
 /target
+.idea
+tmp/
+poll_tmp/
+scoreboard/
+__pycache__
+src/__pycache__

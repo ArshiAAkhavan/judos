@@ -10,6 +10,9 @@ class Config:
     log_level: str
     repos: List[str]
     stages: Set[Dict[str, str]]
+    poll_interval: int
+    scoreboard: Dict[str, str]
+    name: str
 
 
 configs: Config

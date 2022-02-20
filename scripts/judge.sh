@@ -27,11 +27,12 @@ docker wait $cid 1>/dev/null
 docker logs $cid > $COPY_FROM/score.txt
 
 cd $COPY_FROM
-git add score.txt
-git commit -m "update score"
+date >> score.txt
+git add score.txt > /dev/null
+git commit -m "update score" > /dev/null
 log pushing:
-git push
-log pushed
+git push > /dev/null
+log pushed 
 
 # clean up
 cd /

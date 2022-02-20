@@ -1,4 +1,9 @@
+name: homeworks
 concurrency: 1
+poll_interval: 5
+scoreboard:
+  file_name: 'scoreboard.csv'
+  repo: git@github.com:ArshiAAkhavan/test-os
 log-level: INFO
 repos:
   - git@github.com:ArshiAAkhavan/test-os
@@ -7,17 +12,17 @@ stages:
   HW1:
     path: ./hw1
     date_limit:
-      from: 2022_1_12
-      to: 2022_2_12
-    image: delete_this:os-hw1-0.0.5
+      start: 2021-1-12
+      end: 2023-2-12
+    image: delete_this:os-hw1-0.0.6
     entrypoint: ""
     commands:
       - python3 judge.py
   HW2:
     path: ./hw1
     date_limit:
-      from: 2022_1_12
-      to: 2022_2_12
+      start: 2022-1-12
+      end: 2022-2-12
     image: python:3.9
     entrypoint: ""
     commands:
