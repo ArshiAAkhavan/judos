@@ -1,10 +1,10 @@
 name: homeworks
 concurrency: 1
 poll_interval: 5
+log-level: INFO 
 scoreboard:
   file_name: 'scoreboard.csv'
   repo: git@github.com:ArshiAAkhavan/test-os
-log-level: INFO
 repos:
   - git@github.com:ArshiAAkhavan/test-os
   - git@github.com:ArshiAAkhavan/test-os
@@ -15,9 +15,9 @@ stages:
       start: 2021-1-12
       end: 2023-2-12
     judge:
-      image: delete_this:os-hw1-0.0.6
-      copy_to: /opt/content
-      result_path: /etc/hosts
+      image: delete_this:os-hw1-1.0.3
+      copy_to: /hw1
+      result_path: /hw1/grade.txt
   HW2:
     path: ./hw1
     date_limit:

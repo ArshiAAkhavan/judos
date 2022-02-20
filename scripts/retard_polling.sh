@@ -1,5 +1,7 @@
 #!/bin/bash
 TMP_DIR="$PWD/poll_tmp"
+GRADE_FILE_NAME=grade.txt
+
 GIT_URL=$1
 REPO_DIR_RELATIVE=`basename "${GIT_URL%.git}"`
 
@@ -14,7 +16,7 @@ function latest_update {
   for file in `ls`
   do
     log "checking $file"
-    if [ "$file" = "score.txt" ];then
+    if [ "$file" = "$GRADE_FILE_NAME" ];then
       continue
     fi
     echo `env -i git log  --format='%ad' --date=raw --follow -- $HW_PATH/$file | awk '{print$1}' | head -n1`
@@ -34,7 +36,7 @@ else
 fi
 
 log $HW_PATH
-latest_score=`(cd $HW_PATH && env -i git log  --format="%ad" --date=raw --follow -- $HW_PATH/score.txt | awk '{print$1}' | head -n1)`
+latest_score=`(cd $HW_PATH && env -i git log  --format="%ad" --date=raw --follow -- $HW_PATH/$GRADE_FILE_NAME | awk '{print$1}' | head -n1)`
 latest_commit=`latest_update | sort | uniq | sort -r | head -n1`
 
 greater=`printf "${latest_commit}\n${latest_score}" | sort -r | head -n1`

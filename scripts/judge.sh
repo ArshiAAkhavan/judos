@@ -2,6 +2,7 @@
 
 TMP_DIR="$PWD/tmp"
 DIR=$TMP_DIR/$RANDOM
+GRADE_FILE_NAME=grade.txt
 
 IMAGE_NAME=$1
 GIT_URL=$2
@@ -26,10 +27,10 @@ docker wait $cid 1>/dev/null
 
 # updating the score
 cd $COPY_FROM
-docker cp $cid:/$RESULT_PATH score.txt
-date >> score.txt
-git add score.txt > /dev/null
-git commit -m "update score" > /dev/null
+docker cp $cid:/$RESULT_PATH $GRADE_FILE_NAME 
+echo "epoch: $(date +%s)" >> $GRADE_FILE_NAME
+git add $GRADE_FILE_NAME > /dev/null
+git commit -m "update grade" > /dev/null
 log pushing:
 git push > /dev/null
 log pushed 
