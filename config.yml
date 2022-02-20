@@ -15,7 +15,7 @@ stages:
       start: 2021-1-12
       end: 2023-2-12
     judge:
-      image: delete_this:os-hw1-1.0.3
+      image: delete_this:os-hw1-1.0.5
       copy_to: /hw1
       result_path: /hw1/grade.txt
   HW2:

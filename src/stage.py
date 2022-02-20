@@ -39,7 +39,7 @@ class Stage:
         )
         return False
 
-    def trigger(self, repo_url: str):
+    def trigger(self, repo_url: str) -> float:
         logger.info(f"stage triggered on {repo_url} on path {self.path}")
         process = subprocess.Popen(
             f"./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}".split(),
@@ -51,5 +51,12 @@ class Stage:
         logger.debug("output result for trigger on [{repo_url}/{self.path}]")
         logger.debug(err)
         grade = out.decode("utf-8").strip()
-        logger.info(f"grade for [{repo_url}/{self.path}] is {grade}")
-        return grade
+        float_grade = 0.0
+        try:
+            float_grade = float(grade)
+        except:
+            logger.warning(
+                f"output grade wasn't parsable, using {float_grade} instead")
+
+        logger.info(f"grade for [{repo_url}/{self.path}] is {float_grade}")
+        return float_grade

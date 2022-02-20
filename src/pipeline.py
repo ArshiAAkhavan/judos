@@ -1,4 +1,3 @@
-import os
 import subprocess
 import time
 from threading import Lock, Thread
@@ -103,13 +102,14 @@ class Pipeline:
         process = subprocess.Popen(
             cmd.split(),
             stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         out, err = process.communicate()
         logger.info(
             f"updated score for {student_id} with score {score} in stage[{stage_id}]"
         )
-        # logger.debug()
+        logger.debug(out)
+        logger.debug(err)
 
     def exit(self, signal, frame):
         self.lock.acquire()
