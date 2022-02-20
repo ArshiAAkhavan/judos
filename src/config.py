@@ -19,7 +19,7 @@ configs: Config
 with open("./config.yml", "r", encoding="utf-8") as stream:
     try:
         conf_dict = yaml.safe_load(stream)
-        conf_dict['log_level'] = conf_dict.pop('log-level')
+        conf_dict["log_level"] = conf_dict.pop("log-level")
         configs = Config(**conf_dict)
     except yaml.YAMLError as exc:
         print(exc)

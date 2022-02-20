@@ -1,6 +1,6 @@
 import logging
-import subprocess
 import os
+import subprocess
 import time
 from datetime import datetime
 from threading import Lock, Thread
@@ -24,7 +24,7 @@ class Pipeline:
         self.scoreboard = None
 
     @staticmethod
-    def parse_from(configs: Config) -> 'Pipeline':
+    def parse_from(configs: Config) -> "Pipeline":
         p = Pipeline()
         p.concurrency = configs.concurrency
         p.log_level = configs.log_level
@@ -33,20 +33,20 @@ class Pipeline:
         p.name = configs.name
         p.scoreboard = configs.scoreboard
         for i, (name, stage_dict) in enumerate(configs.stages.items()):
-            stage_dict['id'] = i + 2
+            stage_dict["id"] = i + 2
             p.stages[name] = Stage(**stage_dict)
         return p
 
     def run(self):
         logging.warning("Running...")
         poll_thread = Thread(target=self.poll_all, daemon=False)
-        logging.warning(f'PollingThread {poll_thread.getName()} running...')
+        logging.warning(f"PollingThread {poll_thread.getName()} running...")
         poll_thread.start()
         working_threads = []
 
         for i in range(self.concurrency):
             worker = Thread(target=self.try_judge, daemon=False)
-            logging.warning(f'WorkingThread {worker.getName()} running...')
+            logging.warning(f"WorkingThread {worker.getName()} running...")
             worker.start()
             working_threads.append(worker)
 
@@ -56,7 +56,7 @@ class Pipeline:
 
     def poll_all(self):
         while True:
-            logging.warning('polling...')
+            logging.warning("polling...")
             if self.check_done():
                 return
             for repo in self.repos:
@@ -91,9 +91,9 @@ class Pipeline:
 
     def update_scoreboard(self, uid, score, stage_id):
         os.system(
-            f'./scripts/update_scoreboard.sh '
+            f"./scripts/update_scoreboard.sh "
             f'{self.name}.csv {self.scoreboard["repo"]} '
-            f'{uid} {score} {stage_id}'
+            f"{uid} {score} {stage_id}"
         )
 
     def exit(self, signal, frame):
@@ -122,30 +122,33 @@ class Pipeline:
 
 class Stage:
     def __init__(self, **kwargs):
-        self.path = kwargs['path']
-        self.image = kwargs['image']
-        self.id = kwargs['id']
-        self.start = kwargs['date_limit']['start']
+        self.image = kwargs["judge"]["image"]
+        self.copy_to = kwargs["judge"]["copy_to"]
+        self.result_path = kwargs["judge"]["result_path"]
+
+        self.id = kwargs["id"]
+        self.path = kwargs["path"]
+        self.start = kwargs["date_limit"]["start"]
         self.start = datetime.strptime(self.start, "%Y-%m-%d").timestamp()
-        self.end = kwargs['date_limit']['end']
+        self.end = kwargs["date_limit"]["end"]
         self.end = datetime.strptime(self.end, "%Y-%m-%d").timestamp()
 
     def poll(self, repo_url: str) -> bool:
         now = datetime.now().timestamp()
         if now <= self.end and now >= self.start:
-            exit_code = os.system(
-                f'./scripts/retard_polling.sh {repo_url} {self.path}'
-            )
+            exit_code = os.system(f"./scripts/retard_polling.sh {repo_url} {self.path}")
 
             return exit_code == 0
         return False
 
     def trigger(self, repo_url: str):
         logging.warning(f"stage triggered on {repo_url} on path {self.path}")
-        os.system(f'./scripts/judge.sh {self.image} {repo_url} {self.path}')
+        os.system(
+            f"./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}"
+        )
         process = subprocess.Popen(
-            f'./scripts/judge.sh {self.image} {repo_url} {self.path}'.split(),
-            stdout=subprocess.PIPE
+            f"./scripts/judge.sh {self.image} {repo_url} {self.path}".split(),
+            stdout=subprocess.PIPE,
         )
         out, _ = process.communicate()
 

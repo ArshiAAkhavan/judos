@@ -2,11 +2,12 @@
 
 TMP_DIR="$PWD/tmp"
 DIR=$TMP_DIR/$RANDOM
-TARGET_DIR_IN_IMAGE=/opt/content
 
 IMAGE_NAME=$1
 GIT_URL=$2
 COPY_FROM=$DIR/$3
+TARGET_DIR_IN_IMAGE=$4
+RESULT_PATH=$5
 
 
 function log {
@@ -24,9 +25,8 @@ docker container start $cid 1>/dev/null
 docker wait $cid 1>/dev/null
 
 # updating the score
-docker logs $cid > $COPY_FROM/score.txt
-
 cd $COPY_FROM
+docker cp $cid:/$RESULT_PATH score.txt
 date >> score.txt
 git add score.txt > /dev/null
 git commit -m "update score" > /dev/null

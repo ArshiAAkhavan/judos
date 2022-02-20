@@ -16,14 +16,14 @@ stages:
       end: 2023-2-12
     judge:
       image: delete_this:os-hw1-0.0.6
-      copy_path: /opt/content
-      result_path: /opt/content/score.txt
+      copy_to: /opt/content
+      result_path: /etc/hosts
   HW2:
     path: ./hw1
     date_limit:
       start: 2022-1-12
+      end: 2022-2-12
     judge:
       image: delete_this:os-hw1-0.0.6
-      copy_path: /opt/content
+      copy_to: /opt/content
       result_path: /opt/content/score.txt
-      end: 2022-2-12
