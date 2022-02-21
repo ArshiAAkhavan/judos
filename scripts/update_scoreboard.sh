@@ -1,6 +1,7 @@
 #! /bin/bash
 
 TMP_DIR="$PWD/scoreboard"
+mkdir -p $TMP_DIR
 
 FILE_NAME=$1
 GIT_URL=$2

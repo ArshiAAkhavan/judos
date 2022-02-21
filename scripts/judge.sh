@@ -1,6 +1,8 @@
 #!/bin/bash
 
 TMP_DIR="$PWD/tmp"
+mkdir -p $TMP_DIR
+
 DIR=$TMP_DIR/$RANDOM
 GRADE_FILE_NAME=grade.txt
 

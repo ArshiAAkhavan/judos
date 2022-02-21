@@ -1,5 +1,7 @@
 #!/bin/bash
 TMP_DIR="$PWD/poll_tmp"
+mkdir -p $TMP_DIR
+
 GRADE_FILE_NAME=grade.txt
 
 GIT_URL=$1
