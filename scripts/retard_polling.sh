@@ -13,16 +13,8 @@ function log {
 }
 function latest_update {
   cd $HW_PATH
-  for file in `ls`
-  do
-    log "checking $file"
-    if [ "$file" = "$GRADE_FILE_NAME" ];then
-      continue
-    fi
-    echo `env -i git log  --format='%ad' --date=raw --follow -- $HW_PATH/$file | awk '{print$1}' | head -n1`
-  done
+  echo ``
 }
-
 
 if [ -d $REPO_DIR_ABSOLUTE ];then
   log "repo was already there"
@@ -35,12 +27,13 @@ else
   cd $REPO_DIR_ABSOLUTE
 fi
 
-log $HW_PATH
-latest_score=`(cd $HW_PATH && env -i git log  --format="%ad" --date=raw --follow -- $HW_PATH/$GRADE_FILE_NAME | awk '{print$1}' | head -n1)`
-latest_commit=`latest_update | sort | uniq | sort -r | head -n1`
+cd $HW_PATH
+log $PWD
+latest_grade_commit=`env -i git log --format="%ad" --date=raw --author=$(git config user.name) --follow -- ./$GRADE_FILE_NAME | awk '{print$1}' | head -n1`
+latest_commit=`env -i git log --format='%ad' --date=raw --invert-grep --author=$(git config user.name) --follow -- ./ | awk '{print$1}' | head -n1`
 
-greater=`printf "${latest_commit}\n${latest_score}" | sort -r | head -n1`
-log latest_score is  $latest_score
+greater=`printf "${latest_commit}\n${latest_grade_commit}" | sort -r | head -n1`
+log latest_score is  $latest_grade_commit
 log latest_commit is $latest_commit
 log greater is       $greater
 
