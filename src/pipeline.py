@@ -34,6 +34,7 @@ class Pipeline:
         p.scoreboard = configs.scoreboard
         for i, (name, stage_dict) in enumerate(configs.stages.items()):
             stage_dict["id"] = i
+            stage_dict["name"] = name
             p.stages[name] = Stage(**stage_dict)
         return p
 
@@ -56,62 +57,72 @@ class Pipeline:
 
     def poll_all(self):
         while True:
-            logger.info("polling...")
             if self.check_done():
-                logger.warning(
-                    "PollingThread recieved exit signal, exiting...")
+                logger.warning("PollingThread recieved exit signal, exiting...")
                 return
-            for repo in self.repos:
-                for stage in self.stages:
-                    if not (repo, stage) in self.polled:
-                        if self.stages[stage].poll(repo):
-                            self.lock.acquire()
-                            self.queue.append((repo, stage))
-                            self.polled.add((repo, stage))
-                            self.lock.release()
-                            logger.info(f"{(repo,stage)} added to queue")
-            time.sleep(self.poll_interval)
+            logger.info("polling...")
+            try:
+                for repo in self.repos:
+                    for stage in self.stages:
+                        if not (repo, stage) in self.polled:
+                            if self.stages[stage].poll(repo):
+                                self.lock.acquire()
+                                self.queue.append((repo, stage))
+                                self.polled.add((repo, stage))
+                                self.lock.release()
+                                logger.info(f"{(repo,stage)} added to queue")
+                time.sleep(self.poll_interval)
+            except Exception as e:
+                logger.error(e)
+                logger.error("encounterd error while polling, recovering...")
 
     def try_judge(self):
         while True:
             if self.check_done():
                 logger.warning("WorkerThread recieved exit signal, exiting...")
                 return
-            if len(self.queue):
-                self.lock.acquire()
+            try:
                 if len(self.queue):
-                    (repo, stage) = self.queue.pop(0)
-                    self.lock.release()
-
-                    uid = repo.split("/")[-1]
-                    score = self.stages[stage].trigger(repo)
-                    self.update_scoreboard(uid, score, self.stages[stage].id)
-
                     self.lock.acquire()
-                    self.polled.remove((repo, stage))
-                self.lock.release()
-            else:
-                time.sleep(self.poll_interval)
+                    if len(self.queue):
+                        (repo, stage) = self.queue.pop(0)
+                        self.lock.release()
 
-    def update_scoreboard(self, student_id, score, stage_id):
+                        uid = repo.split("/")[-1]
+                        score = self.stages[stage].trigger(repo)
+                        self.update_scoreboard(uid, score, self.stages[stage])
+
+                        self.lock.acquire()
+                        self.polled.remove((repo, stage))
+                    self.lock.release()
+                else:
+                    time.sleep(self.poll_interval)
+            except Exception as e:
+                logger.error(e)
+                logger.error(
+                    "encounter unrecoverable error trying to judge, recovering..."
+                )
+
+    def update_scoreboard(self, student_id, score, stage):
         logger.info(
-            f"update score for {student_id} with score {score} in stage[{stage_id}]"
+            f"updating score for {student_id} with score {score} in Stage::{stage.name}"
         )
 
-        cmd = f'./scripts/update_scoreboard.sh {self.name}.csv {self.scoreboard["repo"]} {student_id} {score} {stage_id+2}'
+        cmd = f'./scripts/update_scoreboard.sh {self.name}.csv {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}'
         process = subprocess.Popen(
             cmd.split(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         out, err = process.communicate()
-        logger.info(
-            f"updated score for {student_id} with score {score} in stage[{stage_id}]"
+        print(
+            f"updated score for {student_id} with score {score} in Stage::{stage.name}"
         )
         logger.debug(out)
         logger.debug(err)
 
     def exit(self, signal, frame):
+        logger.warning("recieved exit signal, populating exit signal to each thread")
         self.lock.acquire()
         for _ in range(self.concurrency + 1):
             self.done.append(0)
