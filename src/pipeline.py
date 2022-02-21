@@ -33,10 +33,9 @@ class Pipeline:
         p.poll_interval = configs.poll_interval
         p.name = configs.name
         p.scoreboard = configs.scoreboard
-        for i, (name, stage_dict) in enumerate(configs.stages.items()):
+        for i, stage_dict in enumerate(configs.stages):
             stage_dict["id"] = i
-            stage_dict["name"] = name
-            p.stages[name] = Stage(**stage_dict)
+            p.stages[stage_dict["name"]] = Stage(**stage_dict)
         return p
 
     def run(self):

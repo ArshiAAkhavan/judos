@@ -9,7 +9,7 @@ repos:
   - git@github.com:ArshiAAkhavan/test-os
   - git@github.com:ArshiAAkhavan/test-os
 stages:
-  HW1:
+  - name: HW1
     path: ./hw1
     date_limit:
       start: 2021-1-12
@@ -18,7 +18,7 @@ stages:
       image: ce424-tester-hw1-s00:1.0.0
       copy_to: /hw1
       result_path: /hw1/grade.txt
-  HW2:
+  - name: HW2
     path: ./hw1
     date_limit:
       start: 2022-1-12
