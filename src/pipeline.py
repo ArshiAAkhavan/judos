@@ -1,6 +1,7 @@
 import subprocess
 import time
 from threading import Lock, Thread
+from datetime import datetime
 from typing import Dict, List, Set, Tuple
 
 import gaylogger as glogging
@@ -116,7 +117,7 @@ class Pipeline:
         )
         out, err = process.communicate()
         print(
-            f"updated score for {student_id} with score {score} in Stage::{stage.name}"
+            f"[{datetime.now()}] updated score for {student_id} with score {score} in Stage::{stage.name}"
         )
         logger.debug(out)
         logger.debug(err)
