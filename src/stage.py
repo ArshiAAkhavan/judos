@@ -33,7 +33,7 @@ class Stage:
             process = subprocess.Popen(
                 f"./scripts/retard_polling.sh {repo_url} {self.path}".split(),
                 stdout=subprocess.PIPE,
-#stderr=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
             out, err = process.communicate()
             exit_code = process.returncode
@@ -50,7 +50,7 @@ class Stage:
         process = subprocess.Popen(
             f"./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}".split(),
             stdout=subprocess.PIPE,
-#stderr=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         out, err = process.communicate()
 
