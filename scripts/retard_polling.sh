@@ -29,6 +29,10 @@ else
   cd $REPO_DIR_ABSOLUTE
 fi
 
+if [ ! -d $HW_PATH ];then
+  log "$HW_PATH doesnt exist"
+  exit -1
+fi
 cd $HW_PATH
 log $PWD
 latest_grade_commit=`env -i git log --format="%ad" --date=raw --author=$(git config user.name) --follow -- ./$GRADE_FILE_NAME | awk '{print$1}' | head -n1`
