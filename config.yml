@@ -1,29 +1,95 @@
 name: homeworks
-concurrency: 1
+concurrency: 5
 poll_interval: 5
 log-level: INFO 
 scoreboard:
   file_name: 'scoreboard.csv'
-  repo: git@github.com:ArshiAAkhavan/test-os
-repos:
-  - git@github.com:ArshiAAkhavan/test-os
-  - git@github.com:ArshiAAkhavan/test-os
+  repo: git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-scoreboard.git
 stages:
   - name: HW1
     path: ./hw1
     date_limit:
-      start: 2021-1-12
-      end: 2023-2-12
+      start: 2022-2-24
+      end: 2022-3-3
     judge:
       image: ce424-tester-hw1-s00:1.0.0
       copy_to: /hw1
       result_path: /hw1/grade.txt
-  - name: HW2
+  - name: HW1-D1
     path: ./hw1
     date_limit:
-      start: 2022-1-12
-      end: 2022-2-12
+      start: 2022-3-3
+      end: 2022-3-4
     judge:
-      image: delete_this:os-hw1-0.0.6
-      copy_to: /opt/content
-      result_path: /opt/content/score.txt
+      image: ce424-tester-hw1-s00:1.0.0
+      copy_to: /hw1
+      result_path: /hw1/grade.txt
+  - name: HW1-D2
+    path: ./hw1
+    date_limit:
+      start: 2022-3-4
+      end: 2022-3-5
+    judge:
+      image: ce424-tester-hw1-s00:1.0.0
+      copy_to: /hw1
+      result_path: /hw1/grade.txt
+  - name: HW1-D3
+    path: ./hw1
+    date_limit:
+      start: 2022-3-5
+      end: 2022-3-6
+    judge:
+      image: ce424-tester-hw1-s00:1.0.0
+      copy_to: /hw1
+      result_path: /hw1/grade.txt
+repos:
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97110625.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97110144.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97110788.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97110444.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97101275.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97106132.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97105899.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97101434.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98171159.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98170776.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97101712.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97101959.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97101191.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98100389.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98100323.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98109548.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98109634.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98110349.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98101555.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98109583.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98105824.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98101385.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98106059.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97105703.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97105941.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97106419.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98106015.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98103867.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98105976.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98171104.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98106134.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98105621.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98101363.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98106072.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98109561.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98106112.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98105835.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98101169.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98103267.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98101844.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98105879.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98101074.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97105963.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97106295.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97101897.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-400210744.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98110095.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98102284.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98170668.git
+  - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-98101171.git

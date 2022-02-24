@@ -89,8 +89,8 @@ class Pipeline:
                         self.lock.release()
 
                         uid = repo.split("/")[-1]
-                        score = self.stages[stage].trigger(repo)
-                        self.update_scoreboard(uid, score, self.stages[stage])
+                        commit_hash,score = self.stages[stage].trigger(repo)
+                        self.update_scoreboard(uid, score, self.stages[stage],commit_hash)
 
                         self.lock.acquire()
                         self.polled.remove((repo, stage))
@@ -103,9 +103,9 @@ class Pipeline:
                     "encounter unrecoverable error trying to judge, recovering..."
                 )
 
-    def update_scoreboard(self, student_id, score, stage):
+    def update_scoreboard(self, student_id, score, stage,commit_hash):
         logger.info(
-            f"updating score for {student_id} with score {score} in Stage::{stage.name}"
+                f"updating score for {student_id} with score {score} in Stage::{stage.name}({commit_hash})"
         )
 
         cmd = f'./scripts/update_scoreboard.sh {self.name}.csv {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}'
@@ -116,7 +116,7 @@ class Pipeline:
         )
         out, err = process.communicate()
         print(
-            f"[{datetime.now()}] updated score for {student_id} with score {score} in Stage::{stage.name}"
+            f"[{datetime.now()}] updated score for {student_id} with score {score} in Stage::{stage.name}({commit_hash})"
         )
         logger.debug(out)
         logger.debug(err)
