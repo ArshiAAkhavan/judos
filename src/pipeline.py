@@ -88,7 +88,7 @@ class Pipeline:
                         (repo, stage) = self.queue.pop(0)
                         self.lock.release()
 
-                        uid = repo.split("/")[-1]
+                        uid = repo.split("/")[-1].removesuffix(".git")
                         commit_hash,score = self.stages[stage].trigger(repo)
                         self.update_scoreboard(uid, score, self.stages[stage],commit_hash)
 
