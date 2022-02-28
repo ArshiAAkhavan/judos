@@ -21,14 +21,13 @@ class Stage:
         self.path = kwargs["path"]
 
         # time limit spec
-        self.start = kwargs["date_limit"]["start"]
+        self.start = kwargs["deadline"]["start"]
         self.start = datetime.strptime(self.start, "%Y-%m-%d").timestamp()
-        self.end = kwargs["date_limit"]["end"]
+        self.end = kwargs["deadline"]["end"]
         self.end = datetime.strptime(self.end, "%Y-%m-%d").timestamp()
 
     def poll(self, repo_url: str) -> bool:
-        logger.debug(
-            f"start polling for Stage::{self.name}({repo_url}/{self.path})")
+        logger.debug(f"start polling for Stage::{self.name}({repo_url}/{self.path})")
         now = datetime.now().timestamp()
         if now <= self.end and now >= self.start:
             process = subprocess.Popen(
@@ -47,8 +46,7 @@ class Stage:
         return False
 
     def trigger(self, repo_url: str) -> (str, float):
-        logger.info(
-            f"stage triggered on Stage::{self.name}({repo_url}/{self.path})")
+        logger.info(f"stage triggered on Stage::{self.name}({repo_url}/{self.path})")
         process = subprocess.Popen(
             f"./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}".split(),
             stdout=subprocess.PIPE,
@@ -65,8 +63,7 @@ class Stage:
         try:
             float_grade = float(grade)
         except Exception:
-            logger.warning(
-                f"output grade wasn't parsable, using {float_grade} instead")
+            logger.warning(f"output grade wasn't parsable, using {float_grade} instead")
 
         logger.info(
             f"grade for Stage::{self.name}({repo_url}/{self.path}) is {float_grade}"

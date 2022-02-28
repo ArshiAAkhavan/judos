@@ -33,9 +33,15 @@ class Pipeline:
         p.poll_interval = configs.poll_interval
         p.name = configs.name
         p.scoreboard = configs.scoreboard
-        for i, stage_dict in enumerate(configs.stages):
-            stage_dict["id"] = i
-            p.stages[stage_dict["name"]] = Stage(**stage_dict)
+        index = 0
+        for stage_dict in configs.stages:
+            for deadline in stage_dict["deadlines"]:
+                task = stage_dict.copy()
+                task["id"] = index
+                index += 1
+                task["deadline"] = {"start": deadline["start"], "end": deadline["end"]}
+                task["name"] = deadline["name"]
+                p.stages[deadline["name"]] = Stage(**task)
         return p
 
     def run(self):
@@ -89,8 +95,10 @@ class Pipeline:
                         self.lock.release()
 
                         uid = repo.split("/")[-1].removesuffix(".git")
-                        commit_hash,score = self.stages[stage].trigger(repo)
-                        self.update_scoreboard(uid, score, self.stages[stage],commit_hash)
+                        commit_hash, score = self.stages[stage].trigger(repo)
+                        self.update_scoreboard(
+                            uid, score, self.stages[stage], commit_hash
+                        )
 
                         self.lock.acquire()
                         self.polled.remove((repo, stage))
@@ -103,9 +111,9 @@ class Pipeline:
                     "encounter unrecoverable error trying to judge, recovering..."
                 )
 
-    def update_scoreboard(self, student_id, score, stage,commit_hash):
+    def update_scoreboard(self, student_id, score, stage, commit_hash):
         logger.info(
-                f"updating score for {student_id} with score {score} in Stage::{stage.name}({commit_hash})"
+            f"updating score for {student_id} with score {score} in Stage::{stage.name}({commit_hash})"
         )
 
         cmd = f'./scripts/update_scoreboard.sh {self.name}.csv {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}'

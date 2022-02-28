@@ -11,7 +11,7 @@ stages:
       image: ce424-tester-hw1-s00:1.0.0
       copy_to: /hw1
       result_path: /hw1/grade.txt
-    date_limit:
+    deadlines:
       - name: HW1
         start: 2022-2-24
         end: 2022-3-3
