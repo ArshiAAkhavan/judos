@@ -116,7 +116,7 @@ class Pipeline:
             f"updating score for {student_id} with score {score} in Stage::{stage.name}({commit_hash})"
         )
 
-        cmd = f'./scripts/update_scoreboard.sh {self.name}.csv {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}'
+        cmd = f'./scripts/update_scoreboard.sh {self.scoreboard["file_name"]} {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}'
         process = subprocess.Popen(
             cmd.split(),
             stdout=subprocess.PIPE,
