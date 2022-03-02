@@ -42,6 +42,11 @@ cd $HW_PATH
 log $PWD
 latest_grade_commit=`env -i git log --format="%ad" --date=raw --author=$(git config user.name) --follow -- ./$GRADE_FILE_NAME | awk '{print$1}' | head -n1`
 latest_commit=`env -i git log --format='%ad' --date=raw --invert-grep --author=$(git config user.name) --follow -- ./ | awk '{print$1}' | head -n1`
+valid_commit_upper_bound=`date +%s`
+greater=`printf "${latest_commit}\n${valid_commit_upper_bound}" | sort -r | head -n1`
+if [[ "$greater" == "$latest_commit" ]]; then
+  exit 127
+fi
 
 greater=`printf "${latest_commit}\n${latest_grade_commit}" | sort -r | head -n1`
 log latest_score is  $latest_grade_commit
