@@ -18,6 +18,15 @@ if [ -d $REPO_DIR_ABSOLUTE ];then
   log "repo was already there"
   cd $REPO_DIR_ABSOLUTE
   git pull
+  if [ $? -eq 128 ]; then
+    log "merge accured temprory delete dir untill fix is ready"
+    cd ../
+    rm -rf $REPO_DIR_ABSOLUTE
+    cd $TMP_DIR
+    git clone $GIT_URL
+    cd $REPO_DIR_ABSOLUTE
+  fi
+
 else
   log "first time encountering repo"
   cd $TMP_DIR
