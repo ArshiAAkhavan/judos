@@ -13,10 +13,6 @@ HW_PATH=$REPO_DIR_ABSOLUTE/$2
 function log {
   echo $@ 1>&2
 }
-function latest_update {
-  cd $HW_PATH
-  echo ``
-}
 
 if [ -d $REPO_DIR_ABSOLUTE ];then
   log "repo was already there"
