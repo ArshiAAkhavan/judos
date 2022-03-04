@@ -14,28 +14,28 @@ stages:
     deadlines:
       - name: HW1
         start: 2022-2-24
-        end: 2022-3-3
-      - name: HW1-D1
-        start: 2022-3-3
         end: 2022-3-4
-      - name: HW1-D2
+      - name: HW1-D1
         start: 2022-3-4
         end: 2022-3-5
-      - name: HW1-D3
+      - name: HW1-D2
         start: 2022-3-5
         end: 2022-3-6
-      - name: HW1-D4
+      - name: HW1-D3
         start: 2022-3-6
         end: 2022-3-7
-      - name: HW1-D5
+      - name: HW1-D4
         start: 2022-3-7
         end: 2022-3-8
-      - name: HW1-D6
+      - name: HW1-D5
         start: 2022-3-8
         end: 2022-3-9
-      - name: HW1-D7
+      - name: HW1-D6
         start: 2022-3-9
         end: 2022-3-10
+      - name: HW1-D7
+        start: 2022-3-10
+        end: 2022-3-11
 repos:
   - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97110625.git
   - git@tarasht.ce.sharif.edu:ce424-002-students/ce424-002-97110144.git
