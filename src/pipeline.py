@@ -63,9 +63,6 @@ class Pipeline:
 
     def poll_all(self):
         while True:
-            if self.check_done():
-                logger.warning("PollingThread recieved exit signal, exiting...")
-                return
             logger.info("polling...")
             try:
                 for repo in self.repos:
@@ -77,6 +74,9 @@ class Pipeline:
                                 self.polled.add((repo, stage))
                                 self.lock.release()
                                 logger.info(f"{(repo,stage)} added to queue")
+                    if self.check_done():
+                        logger.warning("PollingThread recieved exit signal, exiting...")
+                        return
                 time.sleep(self.poll_interval)
             except Exception as e:
                 logger.error(e)
