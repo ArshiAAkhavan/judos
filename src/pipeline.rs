@@ -22,7 +22,8 @@ struct Pipeline {
 #[serde(rename_all = "kebab-case")]
 struct Scoreboard {
     repo: String,
-    target: PathBuf,
+    score_file: PathBuf,
+    commit_file: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,6 +53,20 @@ impl Stage {
         }
     }
     fn trigger(&self, repo_url: String, commit: CommitHash) -> Result<f64> {
-        self.judge.judge(repo_url, self.path)
+        self.judge.judge(repo_url, commit, self.path)
+    }
+}
+
+impl Scoreboard {
+    fn update_grade(&self, stage_name: String, repo_name: String, grade: f64, commit: CommitHash) {
+        // ./scripts/update_scoreboard.sh {self.scoreboard["file_name"]} {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}
+        let output = Command::new("./scripts/update_scoreboard.sh")
+            .arg(self.score_file)
+            .arg(self.repo)
+            .arg(repo_name)
+            .arg(grade.to_string())
+            .arg(stage_name)
+            .output()
+            .expect("unable to run scoarbord script");
     }
 }

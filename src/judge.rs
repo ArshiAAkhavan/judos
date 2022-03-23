@@ -3,12 +3,12 @@ use std::process::Command;
 
 use serde::Deserialize;
 
-use crate::error::Result;
+use crate::error::{PipelineError, Result};
 
 pub type CommitHash = String;
 
 pub trait Judge {
-    fn judge(&self, repo_url: String, from_path: PathBuf) -> Result<f64>;
+    fn judge(&self, repo_url: String, commit: CommitHash, from_path: PathBuf) -> Result<f64>;
 }
 
 #[derive(Debug, Deserialize)]
@@ -19,7 +19,7 @@ pub struct DockerJudge {
 }
 
 impl Judge for DockerJudge {
-    fn judge(&self, repo_url: String, from_path: PathBuf) -> f64 {
+    fn judge(&self, repo_url: String, commit: CommitHash, from_path: PathBuf) -> Result<f64> {
         // ./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}
         let output = Command::new("./scripts/judge.sh")
             .arg(self.image)
@@ -29,6 +29,12 @@ impl Judge for DockerJudge {
             .arg(self.result_path)
             .output()
             .expect("failed to execute judge script");
-        output.output;
+        match output.status.success() {
+            true => String::from_utf8(output.stdout)
+                .map(|s| s.parse::<f64>())
+                .map_err(|_| PipelineError::MalformedOutput)?
+                .map_err(|_| PipelineError::MalformedOutput),
+            false => Err(PipelineError::TriggerError),
+        }
     }
 }
