@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::process::Command;
 use std::{path::PathBuf, time};
 
-use crate::judge::DockerJudge;
+use crate::judge::{DockerJudge, Judge};
 //TODO: better place for CommitHash Type;
 use crate::error::Result;
 use crate::judge::CommitHash;
@@ -52,6 +52,6 @@ impl Stage {
         }
     }
     fn trigger(&self, repo_url: String, commit: CommitHash) -> Result<f64> {
-        Ok(0.0)
+        self.judge.judge(repo_url, self.path)
     }
 }
