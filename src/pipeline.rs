@@ -4,6 +4,7 @@ use std::{path::PathBuf, time};
 
 use crate::judge::DockerJudge;
 //TODO: better place for CommitHash Type;
+use crate::error::Result;
 use crate::judge::CommitHash;
 
 #[derive(Debug, Deserialize)]
@@ -49,5 +50,8 @@ impl Stage {
             true => String::from_utf8(output.stdout).ok(),
             false => None,
         }
+    }
+    fn trigger(&self, repo_url: String, commit: CommitHash) -> Result<f64> {
+        Ok(0.0)
     }
 }
