@@ -34,11 +34,11 @@ struct Stage {
 
 impl Stage {
     fn poll(&self, repo_url: String) -> Option<CommitHash> {
-        if !(time::Instant::now()>self.deadline.0 && time::Instant::now()<self.deadline.1) {
+        if !(time::Instant::now() > self.deadline.0 && time::Instant::now() < self.deadline.1) {
             //TODO: proper logging
-            return None
+            return None;
         }
-            
+
         // ./scripts/retard_polling.sh {repo_url} {self.path}
         let output = Command::new("./script/retard_polling.sh")
             .arg(repo_url)
