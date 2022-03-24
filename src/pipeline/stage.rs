@@ -3,7 +3,7 @@ use std::{path::PathBuf, process::Command, time};
 use super::error::Result;
 use super::judge::DockerJudge;
 use super::judge::Judge;
-use super::CommitHash;
+use super::GitTarget;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -15,7 +15,7 @@ pub struct Stage {
 }
 
 impl Stage {
-    fn poll(&self, repo_url: String) -> Option<CommitHash> {
+    pub fn poll(&self, repo_url: String) -> Option<GitTarget> {
         if !(time::Instant::now() > self.deadline.0 && time::Instant::now() < self.deadline.1) {
             //TODO: proper logging
             return None;
@@ -28,11 +28,13 @@ impl Stage {
             .output()
             .expect("failed to run retartd_polling script");
         match output.status.success() {
-            true => String::from_utf8(output.stdout).ok(),
+            true => {
+                Some(GitTarget::repo(repo_url).on_commit(String::from_utf8(output.stdout).ok()?))
+            }
             false => None,
         }
     }
-    fn trigger(&self, repo_url: String, commit: CommitHash) -> Result<f64> {
-        self.judge.judge(repo_url, commit, self.path)
+    fn trigger(&self, target:GitTarget) -> Result<f64> {
+        self.judge.judge(target, self.path)
     }
 }

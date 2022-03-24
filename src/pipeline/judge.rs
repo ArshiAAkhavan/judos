@@ -3,12 +3,27 @@ use std::process::Command;
 
 use serde::Deserialize;
 
-use crate::error::{PipelineError, Result};
+use super::error::{PipelineError, Result};
 
-pub type CommitHash = String;
+pub struct GitTarget {
+    pub url: String,
+    pub commit: String,
+}
+impl GitTarget {
+    pub fn repo(url: String) -> Self {
+        Self {
+            url,
+            commit: String::from("HEAD"),
+        }
+    }
+    pub fn on_commit(self, commit: String) -> Self {
+        self.commit = commit;
+        self
+    }
+}
 
 pub trait Judge {
-    fn judge(&self, repo_url: String, commit: CommitHash, from_path: PathBuf) -> Result<f64>;
+    fn judge(&self, target: GitTarget, from_path: PathBuf) -> Result<f64>;
 }
 
 #[derive(Debug, Deserialize)]
@@ -19,11 +34,12 @@ pub struct DockerJudge {
 }
 
 impl Judge for DockerJudge {
-    fn judge(&self, repo_url: String, commit: CommitHash, from_path: PathBuf) -> Result<f64> {
+    fn judge(&self, target: GitTarget, from_path: PathBuf) -> Result<f64> {
         // ./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}
+        // TODO: use target commitHash
         let output = Command::new("./scripts/judge.sh")
             .arg(self.image)
-            .arg(repo_url)
+            .arg(target.url)
             .arg(from_path)
             .arg(self.copy_to)
             .arg(self.result_path)
