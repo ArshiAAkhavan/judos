@@ -17,7 +17,7 @@ use stage::Stage;
 // struct Pipeline<'a> {
 struct Pipeline {
     name: String,
-    poll_interval: usize,
+    poll_interval: u32,
     concurrency: usize,
     log_level: String,
     scoreboard: Scoreboard,
@@ -39,7 +39,7 @@ impl<'a> Work<'a> {
 }
 
 impl Pipeline {
-    pub fn run(self) {
+    pub fn run(&self) {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
         // TODO: handle exit signal
@@ -49,12 +49,12 @@ impl Pipeline {
         // poll_all thread
         let srx_pollall = srx.clone();
         handles.push(thread::spawn(move || {
-            let interval = channel::tick(time::Duration::from_secs(1));
+            let interval = channel::tick(time::Duration::from_secs(self.poll_interval as u64));
             loop {
                 select! {
                     recv(interval) -> _ticked => {
                         for repo in &self.repos{
-                            for stage in &self.stages{
+                            for stage in self.stages{
                                 ptx.send(Work::new(GitTarget::repo(repo.clone()),&stage));
                             }
                         }
