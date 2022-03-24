@@ -42,9 +42,10 @@ impl Pipeline {
     pub fn run(self) {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
-        let (stx, srx) = channel::bounded::<()>(self.concurrency + 1);
+        // TODO: handle exit signal
+        let (_stx, srx) = channel::bounded::<()>(self.concurrency + 1);
 
-        let handles = Vec::new();
+        let mut handles = Vec::new();
         // poll_all thread
         let srx_pollall = srx.clone();
         handles.push(thread::spawn(move || {
@@ -52,8 +53,8 @@ impl Pipeline {
             loop {
                 select! {
                     recv(interval) -> _ticked => {
-                        for repo in self.repos{
-                            for stage in self.stages{
+                        for repo in &self.repos{
+                            for stage in &self.stages{
                                 ptx.send(Work::new(GitTarget::repo(repo.clone()),&stage));
                             }
                         }
@@ -84,9 +85,9 @@ impl Pipeline {
                     }
                     recv(wrx) -> work => {
                         let Work { target, stage } = work.unwrap();
-                        match stage.trigger(target) {
+                        match stage.trigger(&target) {
                             Ok(grade) => {
-                                self.scoreboard.update_grade(stage.name, target, grade);
+                                self.scoreboard.update_grade(&stage.name, &target, grade);
                             },
                             // TODO: better logging
                             Err(e) => {eprintln!("{e:?}")},
@@ -95,7 +96,7 @@ impl Pipeline {
                 }
             }));
         }
-        for h in handles{
+        for h in handles {
             h.join();
         }
     }

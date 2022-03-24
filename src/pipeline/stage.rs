@@ -1,11 +1,11 @@
-use std::{path::PathBuf, process::Command, time};
+use std::{path::PathBuf, process::Command};
 
 use super::error::Result;
 use super::judge::DockerJudge;
 use super::judge::Judge;
 use super::GitTarget;
 use chrono::TimeZone;
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local};
 use serde::{de, Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize)]
@@ -37,7 +37,7 @@ impl Stage {
             false => None,
         }
     }
-    pub fn trigger(&self, target: GitTarget) -> Result<f64> {
+    pub fn trigger(&self, target: &GitTarget) -> Result<f64> {
         self.judge.judge(target, &self.path)
     }
 }
