@@ -4,37 +4,54 @@ use super::error::Result;
 use super::judge::DockerJudge;
 use super::judge::Judge;
 use super::GitTarget;
-use serde::Deserialize;
+use chrono::TimeZone;
+use chrono::{DateTime, Local, Utc};
+use serde::{de, Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Stage {
-    deadline: (time::Instant, time::Instant),
+    pub name: String,
+
+    #[serde(deserialize_with = "parse_date_from_costume_string")]
+    deadline: (DateTime<Local>, DateTime<Local>),
     judge: DockerJudge,
     path: PathBuf,
 }
 
 impl Stage {
-    pub fn poll(&self, repo_url: String) -> Option<GitTarget> {
-        if !(time::Instant::now() > self.deadline.0 && time::Instant::now() < self.deadline.1) {
+    pub fn poll(&self, target: GitTarget) -> Option<GitTarget> {
+        if !(Local::now() > self.deadline.0 && Local::now() < self.deadline.1) {
             //TODO: proper logging
             return None;
         }
 
         // ./scripts/retard_polling.sh {repo_url} {self.path}
         let output = Command::new("./script/retard_polling.sh")
-            .arg(repo_url)
-            .arg(self.path)
+            .arg(&target.url)
+            .arg(&self.path)
             .output()
             .expect("failed to run retartd_polling script");
         match output.status.success() {
-            true => {
-                Some(GitTarget::repo(repo_url).on_commit(String::from_utf8(output.stdout).ok()?))
-            }
+            true => Some(target.on_commit(String::from_utf8(output.stdout).ok()?)),
             false => None,
         }
     }
-    fn trigger(&self, target:GitTarget) -> Result<f64> {
-        self.judge.judge(target, self.path)
+    pub fn trigger(&self, target: GitTarget) -> Result<f64> {
+        self.judge.judge(target, &self.path)
     }
+}
+
+fn parse_date_from_costume_string<'de, D>(
+    deserializer: D,
+) -> std::result::Result<(DateTime<Local>, DateTime<Local>), D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = de::Deserialize::deserialize(deserializer)?;
+    println!("{s:?}");
+    Ok((
+        Local.datetime_from_str(&s, "%Y-%m-%d_%H:%M:%S").unwrap(),
+        Local::now(),
+    ))
 }

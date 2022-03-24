@@ -29,20 +29,20 @@ struct Pipeline {
 
 #[derive(Debug)]
 struct Work<'a> {
-    repo_url: GitTarget,
+    target: GitTarget,
     stage: &'a Stage,
 }
 impl<'a> Work<'a> {
-    fn new(repo_url: String, stage: &'a Stage) -> Self {
-        Self { repo_url, stage }
+    fn new(target: GitTarget, stage: &'a Stage) -> Self {
+        Self { target, stage }
     }
 }
 
 impl Pipeline {
-    pub fn run(&self) {
+    pub fn run(self) {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
-        let (stx, srx) = channel::bounded(self.concurrency + 1);
+        let (stx, srx) = channel::bounded::<()>(self.concurrency + 1);
 
         let handles = Vec::new();
         // poll_all thread
@@ -54,7 +54,7 @@ impl Pipeline {
                     recv(interval) -> _ticked => {
                         for repo in self.repos{
                             for stage in self.stages{
-                                ptx.send(Work::new(repo.clone(),&stage));
+                                ptx.send(Work::new(GitTarget::repo(repo.clone()),&stage));
                             }
                         }
                     },
@@ -67,7 +67,7 @@ impl Pipeline {
         for i in 1..=self.concurrency {
             let srx = srx.clone();
             let prx = prx.clone();
-            let (wrx, wtx) = (wrx.clone(), wtx.clone());
+            let (wtx, wrx) = (wtx.clone(), wrx.clone());
             handles.push(thread::spawn(move || loop {
                 select! {
                     recv(srx) -> _sig => {
@@ -75,13 +75,28 @@ impl Pipeline {
                         return;
                     },
                     recv(prx) -> work => {
+                        let Work { target, stage } = work.unwrap();
+                        // TODO: check for duplicate polled
+                        match stage.poll(target) {
+                            Some(target) => wtx.send(Work::new(target, stage)).unwrap(),
+                            None => (),
+                        }
                     }
-
+                    recv(wrx) -> work => {
+                        let Work { target, stage } = work.unwrap();
+                        match stage.trigger(target) {
+                            Ok(grade) => {
+                                self.scoreboard.update_grade(stage.name, target, grade);
+                            },
+                            // TODO: better logging
+                            Err(e) => {eprintln!("{e:?}")},
+                        }
+                    }
                 }
             }));
-            let work = prx.recv();
-            let Work { repo_url, stage } = work.unwrap();
-            let res = stage.poll(repo_url);
+        }
+        for h in handles{
+            h.join();
         }
     }
 }
