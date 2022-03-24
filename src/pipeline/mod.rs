@@ -29,7 +29,7 @@ struct Pipeline {
 
 #[derive(Debug)]
 struct Work<'a> {
-    repo_url: String,
+    repo_url: GitTarget,
     stage: &'a Stage,
 }
 impl<'a> Work<'a> {

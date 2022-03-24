@@ -5,6 +5,7 @@ use serde::Deserialize;
 
 use super::error::{PipelineError, Result};
 
+#[derive(Debug)]
 pub struct GitTarget {
     pub url: String,
     pub commit: String,
