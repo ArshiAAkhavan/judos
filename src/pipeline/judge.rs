@@ -13,7 +13,7 @@ pub struct GitTarget {
 }
 impl Display for GitTarget {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "GitTarget<{}::{}>", self.get_name(), self.commit)
+        write!(f, "GitTarget({}::{})", self.get_name(), self.commit)
     }
 }
 impl GitTarget {

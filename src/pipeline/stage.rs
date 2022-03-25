@@ -6,7 +6,10 @@ use super::judge::Judge;
 use super::GitTarget;
 use chrono::TimeZone;
 use chrono::{DateTime, Local};
+use log::debug;
 use serde::{de, Deserialize, Deserializer};
+
+const POLLING_SCRIPT_FILEPATH: &str = "./scripts/retard_polling.sh";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -32,12 +35,15 @@ struct Deadline {
 impl Stage {
     pub fn poll(&self, target: GitTarget) -> Option<GitTarget> {
         if !(Local::now() > self.deadline.from && Local::now() < self.deadline.to) {
-            //TODO: proper logging
+            debug!(
+                "datetime is out of bound for stage({}),aborting...",
+                self.name
+            );
             return None;
         }
 
         // ./scripts/retard_polling.sh {repo_url} {self.path}
-        let output = Command::new("./script/retard_polling.sh")
+        let output = Command::new(POLLING_SCRIPT_FILEPATH)
             .arg(&target.url)
             .arg(&self.path)
             .output()

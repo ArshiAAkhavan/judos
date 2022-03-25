@@ -5,7 +5,7 @@ mod stage;
 use std::{fmt::Display, time};
 
 use crossbeam::{self, channel, select};
-use log::{error, info};
+use log::{error, info,debug};
 use serde::Deserialize;
 
 //TODO: better place for CommitHash Type;
@@ -59,7 +59,7 @@ impl Pipeline {
                         recv(interval) -> _ticked => {
                             for repo in &self.repos{
                                 for stage in &self.stages{
-                                    info!("marking ({repo},{}) as a candidate",stage.name);
+                                    debug!("marking ({repo},{}) as a candidate",stage.name);
                                     ptx.send(Work::new(GitTarget::repo(repo.clone()),&stage)).unwrap();
                                 }
                             }
@@ -83,12 +83,12 @@ impl Pipeline {
                         },
                         recv(prx) -> work => {
                             let work = work.unwrap();
-                            info!("thread {i} received {work}");
+                            debug!("thread {i} received [poll] order on {work}");
                             let Work { target, stage } = work; //work.unwrap();
                             // TODO: check for duplicate polled
                             match stage.poll(target) {
                                 Some(target) => {
-                                    info!("poll resulted in {target}, pushing to work queue");
+                                    info!("poll resulted in {target}, pushing to work queue...");
                                     wtx.send(Work::new(target, stage)).unwrap()
                                 },
                                 None => (),
