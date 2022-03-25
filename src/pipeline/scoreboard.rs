@@ -1,7 +1,8 @@
 use std::{path::PathBuf, process::Command};
 
-use super::judge::GitTarget;
 use serde::Deserialize;
+use log::info;
+use super::judge::GitTarget;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -23,5 +24,7 @@ impl Scoreboard {
             .arg(stage_name)
             .output()
             .expect("unable to run scoarbord script");
+        info!("update score {grade:.1} for {target} on stage({stage_name})");
+        
     }
 }

@@ -23,14 +23,14 @@ if [ -d $REPO_DIR_ABSOLUTE ];then
     cd ../
     rm -rf $REPO_DIR_ABSOLUTE
     cd $TMP_DIR
-    git clone $GIT_URL
+    git clone $GIT_URL 1>&2
     cd $REPO_DIR_ABSOLUTE
   fi
 
 else
   log "first time encountering repo"
   cd $TMP_DIR
-  git clone $GIT_URL
+  git clone $GIT_URL 1>&2
   cd $REPO_DIR_ABSOLUTE
 fi
 

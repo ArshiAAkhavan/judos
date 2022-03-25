@@ -4,8 +4,9 @@ mod scoreboard;
 mod stage;
 use std::{fmt::Display, time};
 
+use chrono::Local;
 use crossbeam::{self, channel, select};
-use log::{error, info,debug};
+use log::{debug, error, info};
 use serde::Deserialize;
 
 //TODO: better place for CommitHash Type;
@@ -37,7 +38,7 @@ impl<'a> Work<'a> {
 }
 impl<'a> Display for Work<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Work<{},{}>", self.target, self.stage.name)
+        write!(f, "Work<{},{}>", self.stage.name, self.target)
     }
 }
 
@@ -88,16 +89,19 @@ impl Pipeline {
                             // TODO: check for duplicate polled
                             match stage.poll(target) {
                                 Some(target) => {
-                                    info!("poll resulted in {target}, pushing to work queue...");
+                                    info!("poll resulted in ({},{target}), pushing to work queue...",stage.name);
                                     wtx.send(Work::new(target, stage)).unwrap()
                                 },
                                 None => (),
                             }
                         }
                         recv(wrx) -> work => {
-                            let Work { target, stage } = work.unwrap();
+                            let work = work.unwrap();
+                            info!("worker {i} recieved [judge] order on {work}");
+                            let Work { target, stage } = work;
                             match stage.trigger(&target) {
                                 Ok(grade) => {
+                                    println!("[{}] {target} received score {grade:.1} for stage {}",Local::now(),stage.name);
                                     self.scoreboard.update_grade(&stage.name, &target, grade);
                                 },
                                 // TODO: better logging

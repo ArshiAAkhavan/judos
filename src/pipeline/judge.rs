@@ -2,9 +2,12 @@ use std::fmt::Display;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use log::{error, warn};
 use serde::Deserialize;
 
 use super::error::{PipelineError, Result};
+
+const JUDGE_SCRIPT_FILE_PATH: &str = "./scripts/judge.sh";
 
 #[derive(Debug)]
 pub struct GitTarget {
@@ -49,7 +52,7 @@ impl Judge for DockerJudge {
     fn judge(&self, target: &GitTarget, from_path: &Path) -> Result<f64> {
         // ./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}
         // TODO: use target commitHash
-        let output = Command::new("./scripts/judge.sh")
+        let output = Command::new(JUDGE_SCRIPT_FILE_PATH)
             .arg(&self.image)
             .arg(&target.url)
             .arg(from_path)
@@ -59,10 +62,14 @@ impl Judge for DockerJudge {
             .expect("failed to execute judge script");
         match output.status.success() {
             true => String::from_utf8(output.stdout)
-                .map(|s| s.parse::<f64>())
+                .map(|s| s.trim().parse::<f64>())
                 .map_err(|_| PipelineError::MalformedOutput)?
                 .map_err(|_| PipelineError::MalformedOutput),
-            false => Err(PipelineError::TriggerError),
+            false => {
+                warn!("running judge failed on ({target},{from_path:?})");
+                error!("{}", String::from_utf8(output.stderr).unwrap());
+                Err(PipelineError::TriggerError)
+            }
         }
     }
 }

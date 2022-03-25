@@ -6,7 +6,7 @@ use super::judge::Judge;
 use super::GitTarget;
 use chrono::TimeZone;
 use chrono::{DateTime, Local};
-use log::debug;
+use log::{debug, info};
 use serde::{de, Deserialize, Deserializer};
 
 const POLLING_SCRIPT_FILEPATH: &str = "./scripts/retard_polling.sh";
@@ -16,8 +16,6 @@ const POLLING_SCRIPT_FILEPATH: &str = "./scripts/retard_polling.sh";
 pub struct Stage {
     pub name: String,
 
-    // #[serde(deserialize_with = "parse_date_from_costume_string")]
-    // deadline: (DateTime<Local>, DateTime<Local>),
     deadline: Deadline,
     judge: DockerJudge,
     path: PathBuf,
@@ -42,14 +40,13 @@ impl Stage {
             return None;
         }
 
-        // ./scripts/retard_polling.sh {repo_url} {self.path}
         let output = Command::new(POLLING_SCRIPT_FILEPATH)
             .arg(&target.url)
             .arg(&self.path)
             .output()
             .expect("failed to run retartd_polling script");
         match output.status.success() {
-            true => Some(target.on_commit(String::from_utf8(output.stdout).ok()?)),
+            true => Some(target.on_commit(String::from_utf8(output.stdout).ok()?.trim().into())),
             false => {
                 debug!(
                     "{}",
@@ -61,6 +58,7 @@ impl Stage {
         }
     }
     pub fn trigger(&self, target: &GitTarget) -> Result<f64> {
+        info!("triggered judge from stage({}) on {target}", self.name);
         self.judge.judge(target, &self.path)
     }
 }
