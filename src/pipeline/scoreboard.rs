@@ -7,8 +7,8 @@ use serde::Deserialize;
 #[serde(rename_all = "kebab-case")]
 pub struct Scoreboard {
     repo: String,
-    score_file: PathBuf,
-    commit_file: PathBuf,
+    scorefile: PathBuf,
+    commitfile: PathBuf,
 }
 
 impl Scoreboard {
@@ -16,7 +16,7 @@ impl Scoreboard {
         // ./scripts/update_scoreboard.sh {self.scoreboard["file_name"]} {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}
         // TODO: use commitHash
         let _output = Command::new("./scripts/update_scoreboard.sh")
-            .arg(&self.score_file)
+            .arg(&self.scorefile)
             .arg(&self.repo)
             .arg(target.get_name())
             .arg(grade.to_string())

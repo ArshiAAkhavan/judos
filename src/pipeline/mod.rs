@@ -14,7 +14,7 @@ use stage::Stage;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-struct Pipeline {
+pub struct Pipeline {
     name: String,
     poll_interval: u32,
     concurrency: usize,
