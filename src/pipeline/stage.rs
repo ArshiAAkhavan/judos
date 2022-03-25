@@ -13,15 +13,25 @@ use serde::{de, Deserialize, Deserializer};
 pub struct Stage {
     pub name: String,
 
-    #[serde(deserialize_with = "parse_date_from_costume_string")]
-    deadline: (DateTime<Local>, DateTime<Local>),
+    // #[serde(deserialize_with = "parse_date_from_costume_string")]
+    // deadline: (DateTime<Local>, DateTime<Local>),
+    deadline: Deadline,
     judge: DockerJudge,
     path: PathBuf,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+struct Deadline {
+    #[serde(deserialize_with = "parse_date_from_costume_string")]
+    from: DateTime<Local>,
+    #[serde(deserialize_with = "parse_date_from_costume_string")]
+    to: DateTime<Local>,
+}
+
 impl Stage {
     pub fn poll(&self, target: GitTarget) -> Option<GitTarget> {
-        if !(Local::now() > self.deadline.0 && Local::now() < self.deadline.1) {
+        if !(Local::now() > self.deadline.from && Local::now() < self.deadline.to) {
             //TODO: proper logging
             return None;
         }
@@ -44,14 +54,11 @@ impl Stage {
 
 fn parse_date_from_costume_string<'de, D>(
     deserializer: D,
-) -> std::result::Result<(DateTime<Local>, DateTime<Local>), D::Error>
+) -> std::result::Result<DateTime<Local>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let s: String = de::Deserialize::deserialize(deserializer)?;
     println!("{s:?}");
-    Ok((
-        Local.datetime_from_str(&s, "%Y-%m-%d_%H:%M:%S").unwrap(),
-        Local::now(),
-    ))
+    Ok(Local.datetime_from_str(&s, "%Y-%m-%d_%H:%M:%S").unwrap())
 }

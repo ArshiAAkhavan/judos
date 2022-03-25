@@ -14,7 +14,6 @@ use stage::Stage;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-// struct Pipeline<'a> {
 struct Pipeline {
     name: String,
     poll_interval: u32,
@@ -23,8 +22,6 @@ struct Pipeline {
     scoreboard: Scoreboard,
     stages: Vec<Stage>,
     repos: Vec<String>,
-    // #[serde(skip, default)]
-    // work_queue: Vec<Work<'a>>,
 }
 
 #[derive(Debug)]
