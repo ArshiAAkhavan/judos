@@ -50,7 +50,14 @@ impl Stage {
             .expect("failed to run retartd_polling script");
         match output.status.success() {
             true => Some(target.on_commit(String::from_utf8(output.stdout).ok()?)),
-            false => None,
+            false => {
+                debug!(
+                    "{}",
+                    String::from_utf8(output.stderr)
+                        .unwrap_or("couldn't display command output".into())
+                );
+                None
+            }
         }
     }
     pub fn trigger(&self, target: &GitTarget) -> Result<f64> {
