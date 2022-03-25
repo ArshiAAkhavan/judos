@@ -59,6 +59,5 @@ where
     D: Deserializer<'de>,
 {
     let s: String = de::Deserialize::deserialize(deserializer)?;
-    println!("{s:?}");
-    Ok(Local.datetime_from_str(&s, "%Y-%m-%d_%H:%M:%S").unwrap())
+    Ok(Local.datetime_from_str(&s, "%Y_%m_%d-%H:%M:%S").unwrap())
 }

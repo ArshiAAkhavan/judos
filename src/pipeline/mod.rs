@@ -2,9 +2,10 @@ mod error;
 mod judge;
 mod scoreboard;
 mod stage;
-use std::{thread, time};
+use std::{fmt::Display, time};
 
 use crossbeam::{self, channel, select};
+use log::{error, info};
 use serde::Deserialize;
 
 //TODO: better place for CommitHash Type;
@@ -34,6 +35,11 @@ impl<'a> Work<'a> {
         Self { target, stage }
     }
 }
+impl<'a> Display for Work<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Work<{},{}>", self.target, self.stage.name)
+    }
+}
 
 impl Pipeline {
     pub fn run(&self) {
@@ -45,6 +51,7 @@ impl Pipeline {
         // poll_all thread
         let srx_pollall = srx.clone();
         crossbeam::scope(|s| {
+            info!("spawning the poll_all thread");
             s.spawn(|_| {
                 let interval = channel::tick(time::Duration::from_secs(self.poll_interval as u64));
                 loop {
@@ -52,12 +59,13 @@ impl Pipeline {
                         recv(interval) -> _ticked => {
                             for repo in &self.repos{
                                 for stage in &self.stages{
+                                    info!("marking ({repo},{}) as a candidate",stage.name);
                                     ptx.send(Work::new(GitTarget::repo(repo.clone()),&stage)).unwrap();
                                 }
                             }
                         },
                         recv(srx_pollall) -> _sig => {
-                            eprintln!("poll_all thread recieved exit signal, exiting")
+                            error!("poll_all thread recieved exit signal, exiting")
                         }
                     }
                 }
@@ -66,17 +74,23 @@ impl Pipeline {
                 let srx = srx.clone();
                 let prx = prx.clone();
                 let (wtx, wrx) = (wtx.clone(), wrx.clone());
+                info!("spawning working thread no.{i}");
                 s.spawn(move |_| loop {
                     select! {
                         recv(srx) -> _sig => {
-                            eprintln!("thread {i} recieved exit signal, exiting...");
+                            error!("worker {i} recieved exit signal, exiting...");
                             return;
                         },
                         recv(prx) -> work => {
-                            let Work { target, stage } = work.unwrap();
+                            let work = work.unwrap();
+                            info!("thread {i} received {work}");
+                            let Work { target, stage } = work; //work.unwrap();
                             // TODO: check for duplicate polled
                             match stage.poll(target) {
-                                Some(target) => wtx.send(Work::new(target, stage)).unwrap(),
+                                Some(target) => {
+                                    info!("poll resulted in {target}, pushing to work queue");
+                                    wtx.send(Work::new(target, stage)).unwrap()
+                                },
                                 None => (),
                             }
                         }

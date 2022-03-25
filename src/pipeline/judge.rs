@@ -1,4 +1,5 @@
-use std::path::{PathBuf, Path};
+use std::fmt::Display;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use serde::Deserialize;
@@ -9,6 +10,11 @@ use super::error::{PipelineError, Result};
 pub struct GitTarget {
     pub url: String,
     pub commit: String,
+}
+impl Display for GitTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "GitTarget<{}::{}>", self.get_name(), self.commit)
+    }
 }
 impl GitTarget {
     pub fn repo(url: String) -> Self {
@@ -23,7 +29,8 @@ impl GitTarget {
     }
 
     pub fn get_name(&self) -> &str {
-        self.url.split('/').last().unwrap().strip_suffix(".git").unwrap()
+        let name = self.url.split('/').last().unwrap();
+        name.strip_suffix(".git").unwrap_or(name)
     }
 }
 
