@@ -2,13 +2,12 @@ mod error;
 mod judge;
 mod scoreboard;
 mod stage;
-use std::thread;
 use std::{fmt::Display, time};
 
 use chrono::Local;
 use crossbeam::{
     self,
-    channel::{self, Receiver, Sender},
+    channel::{self, Sender},
     select,
 };
 use log::{debug, error, info};
