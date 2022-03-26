@@ -51,13 +51,13 @@ pub struct DockerJudge {
 impl Judge for DockerJudge {
     fn judge(&self, target: &GitTarget, from_path: &Path) -> Result<f64> {
         // ./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}
-        // TODO: use target commitHash
         let output = Command::new(JUDGE_SCRIPT_FILE_PATH)
             .arg(&self.image)
             .arg(&target.url)
             .arg(from_path)
             .arg(&self.copy_to)
             .arg(&self.result_path)
+            .arg(&target.commit)
             .output()
             .expect("failed to execute judge script");
         match output.status.success() {

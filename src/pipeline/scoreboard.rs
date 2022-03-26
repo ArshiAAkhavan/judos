@@ -16,8 +16,6 @@ const UPDATE_SCOREBOARD_SCRIPT_FILE_PATH: &str = "./scripts/update_scoreboard.sh
 impl Scoreboard {
     pub fn update_grade(&self, stage_name: &str, target: &GitTarget, grade: f64) {
         // ./scripts/update_scoreboard.sh {self.scoreboard["file_name"]} {self.scoreboard["repo"]} {student_id} {score} {stage.id+2}
-        // TODO: use commitHash
-        // TODO: handle stage_name (previous implementation used stage_id)
         let output = Command::new(UPDATE_SCOREBOARD_SCRIPT_FILE_PATH)
             .arg(&self.scorefile)
             .arg(&self.repo)
