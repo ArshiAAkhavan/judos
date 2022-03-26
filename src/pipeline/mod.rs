@@ -2,10 +2,15 @@ mod error;
 mod judge;
 mod scoreboard;
 mod stage;
+use std::thread;
 use std::{fmt::Display, time};
 
 use chrono::Local;
-use crossbeam::{self, channel, select};
+use crossbeam::{
+    self,
+    channel::{self, Receiver, Sender},
+    select,
+};
 use log::{debug, error, info};
 use serde::Deserialize;
 
@@ -24,6 +29,12 @@ pub struct Pipeline {
     scoreboard: Scoreboard,
     stages: Vec<Stage>,
     repos: Vec<String>,
+    // #[serde(skip_deserializing)]
+    // #[serde(default)]
+    // stx: Option<Sender<()>>,
+    // #[serde(skip_deserializing)]
+    // #[serde(default)]
+    // srx: Option<Receiver<()>>,
 }
 
 #[derive(Debug)]
@@ -42,14 +53,17 @@ impl<'a> Display for Work<'a> {
     }
 }
 
+// type ExitHandle = fn() -> ();
 impl Pipeline {
     pub fn run(&self) {
+        //-> ExitHandle {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
         // TODO: handle exit signal
         let (_stx, srx) = channel::bounded::<()>(self.concurrency + 1);
 
         // poll_all thread
+        // thread::spawn(|| {
         let srx_pollall = srx.clone();
         crossbeam::scope(|s| {
             info!("spawning the poll_all thread");
@@ -113,5 +127,6 @@ impl Pipeline {
             }
         })
         .unwrap();
+        // });
     }
 }
