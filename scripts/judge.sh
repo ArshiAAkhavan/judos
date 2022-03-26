@@ -35,7 +35,7 @@ echo "epoch: $(date +%s)" >> $GRADE_FILE_NAME
 git add $GRADE_FILE_NAME > /dev/null
 git commit -m "update grade" > /dev/null
 log pushing:
-# git push > /dev/null
+git push > /dev/null
 log pushed 
 
 # clean up
