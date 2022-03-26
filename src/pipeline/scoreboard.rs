@@ -24,8 +24,8 @@ impl Scoreboard {
             .arg(target.get_name())
             .arg(format!("{grade:.1}"))
             .arg(stage_name)
-            // .arg(&self.commitfile)
-            // .arg(&target.commit)
+            .arg(&self.commitfile)
+            .arg(&target.commit)
             .output()
             .expect("unable to run scoarbord script");
 
