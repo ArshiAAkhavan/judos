@@ -29,12 +29,6 @@ pub struct Pipeline {
     scoreboard: Scoreboard,
     stages: Vec<Stage>,
     repos: Vec<String>,
-    // #[serde(skip_deserializing)]
-    // #[serde(default)]
-    // stx: Option<Sender<()>>,
-    // #[serde(skip_deserializing)]
-    // #[serde(default)]
-    // srx: Option<Receiver<()>>,
 }
 
 #[derive(Debug)]
@@ -53,17 +47,14 @@ impl<'a> Display for Work<'a> {
     }
 }
 
-// type ExitHandle = fn() -> ();
 impl Pipeline {
     pub fn run(&self) {
-        //-> ExitHandle {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
         // TODO: handle exit signal
         let (_stx, srx) = channel::bounded::<()>(self.concurrency + 1);
 
         // poll_all thread
-        // thread::spawn(|| {
         let srx_pollall = srx.clone();
         crossbeam::scope(|s| {
             info!("spawning the poll_all thread");
@@ -72,12 +63,7 @@ impl Pipeline {
                 loop {
                     select! {
                         recv(interval) -> _ticked => {
-                            for repo in &self.repos{
-                                for stage in &self.stages{
-                                    debug!("marking ({repo},{}) as a candidate",stage.name);
-                                    ptx.send(Work::new(GitTarget::repo(repo.clone()),&stage)).unwrap();
-                                }
-                            }
+                            self.poll_all(&ptx);
                         },
                         recv(srx_pollall) -> _sig => {
                             error!("poll_all thread recieved exit signal, exiting")
@@ -99,34 +85,56 @@ impl Pipeline {
                         recv(prx) -> work => {
                             let work = work.unwrap();
                             debug!("thread {i} received [poll] order on {work}");
-                            let Work { target, stage } = work; //work.unwrap();
-                            // TODO: check for duplicate polled
-                            match stage.poll(target) {
-                                Some(target) => {
-                                    info!("poll resulted in ({},{target}), pushing to work queue...",stage.name);
-                                    wtx.send(Work::new(target, stage)).unwrap()
-                                },
-                                None => (),
-                            }
+                            self.poll(work,&wtx);
                         }
                         recv(wrx) -> work => {
                             let work = work.unwrap();
                             info!("worker {i} recieved [judge] order on {work}");
-                            let Work { target, stage } = work;
-                            match stage.trigger(&target) {
-                                Ok(grade) => {
-                                    println!("[{}] {target} received score {grade:.1} for stage {}",Local::now(),stage.name);
-                                    self.scoreboard.update_grade(&stage.name, &target, grade);
-                                },
-                                // TODO: better logging
-                                Err(e) => {eprintln!("{e:?}")},
-                            }
+                            self.judge(work);
                         }
                     }
                 });
             }
         })
         .unwrap();
-        // });
+    }
+    fn poll<'a>(&self, work: Work<'a>, wtx: &Sender<Work<'a>>) {
+        let Work { target, stage } = work;
+        // TODO: check for duplicate polled
+        match stage.poll(target) {
+            Some(target) => {
+                info!(
+                    "poll resulted in ({},{target}), pushing to work queue...",
+                    stage.name
+                );
+                wtx.send(Work::new(target, stage)).unwrap()
+            }
+            None => (),
+        }
+    }
+    fn judge<'a>(&self, work: Work<'a>) {
+        let Work { target, stage } = work;
+        match stage.trigger(&target) {
+            Ok(grade) => {
+                println!(
+                    "[{}] {target} received score {grade:.1} for stage {}",
+                    Local::now(),
+                    stage.name
+                );
+                self.scoreboard.update_grade(&stage.name, &target, grade);
+            }
+            Err(e) => {
+                error!("judge failed to run with the following error{e:?}")
+            }
+        }
+    }
+    fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>) {
+        for repo in &self.repos {
+            for stage in &self.stages {
+                debug!("marking ({repo},{}) as a candidate", stage.name);
+                ptx.send(Work::new(GitTarget::repo(repo.clone()), &stage))
+                    .unwrap();
+            }
+        }
     }
 }
