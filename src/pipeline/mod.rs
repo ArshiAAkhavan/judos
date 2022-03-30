@@ -50,7 +50,6 @@ impl Pipeline {
     pub fn run(&self, sig_in: Receiver<()>) {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
-        // TODO: handle exit signal
         let (stx, srx) = channel::bounded::<()>(self.concurrency + 1);
 
         // poll_all thread
@@ -112,7 +111,6 @@ impl Pipeline {
     }
     fn poll<'a>(&self, work: Work<'a>, wtx: &Sender<Work<'a>>) {
         let Work { target, stage } = work;
-        // TODO: check for duplicate polled
         match stage.poll(target) {
             Some(target) => {
                 info!(
@@ -141,6 +139,7 @@ impl Pipeline {
         }
     }
     fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>) {
+        // TODO: handle duplication better
         if ! ptx.is_empty(){
             debug!("last poll is not finished yet!");
             return;
