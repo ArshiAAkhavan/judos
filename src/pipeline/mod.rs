@@ -7,10 +7,10 @@ use std::{fmt::Display, time};
 use chrono::Local;
 use crossbeam::{
     self,
-    channel::{self, Sender},
+    channel::{self, Receiver, Sender},
     select,
 };
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use serde::Deserialize;
 
 //TODO: better place for CommitHash Type;
@@ -47,25 +47,38 @@ impl<'a> Display for Work<'a> {
 }
 
 impl Pipeline {
-    pub fn run(&self) {
+    pub fn run(&self, sig_in: Receiver<()>) {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
         // TODO: handle exit signal
-        let (_stx, srx) = channel::bounded::<()>(self.concurrency + 1);
+        let (stx, srx) = channel::bounded::<()>(self.concurrency + 1);
 
         // poll_all thread
         let srx_pollall = srx.clone();
         crossbeam::scope(|s| {
+            info!("spawning signal handler thread");
+            s.spawn(|_| {
+                select! {
+                    recv(sig_in) -> _signal => {
+                        warn!("pipeline received exit signal, propagating...");
+                        for _ in 0..stx.capacity().unwrap(){
+                            stx.send(());
+                        }
+                    },
+                };
+            });
             info!("spawning the poll_all thread");
             s.spawn(|_| {
                 let interval = channel::tick(time::Duration::from_secs(self.poll_interval as u64));
                 loop {
                     select! {
                         recv(interval) -> _ticked => {
+                            info!("polling...");
                             self.poll_all(&ptx);
                         },
                         recv(srx_pollall) -> _sig => {
-                            error!("poll_all thread recieved exit signal, exiting")
+                            error!("poll_all thread recieved exit signal, exiting");
+                            return;
                         }
                     }
                 }
