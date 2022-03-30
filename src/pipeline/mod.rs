@@ -141,6 +141,10 @@ impl Pipeline {
         }
     }
     fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>) {
+        if ! ptx.is_empty(){
+            debug!("last poll is not finished yet!");
+            return;
+        }
         for repo in &self.repos {
             for stage in &self.stages {
                 debug!("marking ({repo},{}) as a candidate", stage.name);
