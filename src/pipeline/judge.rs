@@ -1,4 +1,4 @@
-use std::fmt::{Display, Debug};
+use std::fmt::{Debug, Display};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -49,7 +49,7 @@ pub struct DockerJudge {
     result_path: PathBuf,
 }
 
-#[typetag::serde]
+#[typetag::serde(name = "docker")]
 impl Judge for DockerJudge {
     fn judge(&self, target: &GitTarget, from_path: &Path) -> Result<f64> {
         // ./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}
@@ -73,5 +73,27 @@ impl Judge for DockerJudge {
                 Err(PipelineError::TriggerError)
             }
         }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DummyJudge;
+
+#[typetag::serde(name = "dummy")]
+impl Judge for DummyJudge {
+    fn judge(&self, _target: &GitTarget, _from_path: &Path) -> Result<f64> {
+        Ok(0.0f64)
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ConstJudge {
+    score: f64,
+}
+
+#[typetag::serde(name = "const")]
+impl Judge for ConstJudge {
+    fn judge(&self, _target: &GitTarget, _from_path: &Path) -> Result<f64> {
+        Ok(self.score)
     }
 }

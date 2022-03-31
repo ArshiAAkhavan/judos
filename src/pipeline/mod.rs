@@ -61,7 +61,7 @@ impl Pipeline {
                     recv(sig_in) -> _signal => {
                         warn!("pipeline received exit signal, propagating...");
                         for _ in 0..stx.capacity().unwrap(){
-                            stx.send(());
+                            stx.send(()).expect("couldn't send SIGINT to all threads, panic!");
                         }
                     },
                 };
@@ -111,18 +111,15 @@ impl Pipeline {
     }
     fn poll<'a>(&self, work: Work<'a>, wtx: &Sender<Work<'a>>) {
         let Work { target, stage } = work;
-        match stage.poll(target) {
-            Some(target) => {
-                info!(
-                    "poll resulted in ({},{target}), pushing to work queue...",
-                    stage.name
-                );
-                wtx.send(Work::new(target, stage)).unwrap()
-            }
-            None => (),
-        }
+        if let Some(target) = stage.poll(target) {
+            info!(
+                "poll resulted in ({},{target}), pushing to work queue...",
+                stage.name
+            );
+            wtx.send(Work::new(target, stage)).unwrap()
+        };
     }
-    fn judge<'a>(&self, work: Work<'a>) {
+    fn judge(&self, work: Work<'_>) {
         let Work { target, stage } = work;
         match stage.trigger(&target) {
             Ok(grade) => {
@@ -140,14 +137,14 @@ impl Pipeline {
     }
     fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>) {
         // TODO: handle duplication better
-        if ! ptx.is_empty(){
+        if !ptx.is_empty() {
             debug!("last poll is not finished yet!");
             return;
         }
         for repo in &self.repos {
             for stage in &self.stages {
                 debug!("marking ({repo},{}) as a candidate", stage.name);
-                ptx.send(Work::new(GitTarget::repo(repo.clone()), &stage))
+                ptx.send(Work::new(GitTarget::repo(repo.clone()), stage))
                     .unwrap();
             }
         }

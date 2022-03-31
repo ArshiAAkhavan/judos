@@ -1,7 +1,6 @@
 use std::{path::PathBuf, process::Command};
 
 use super::error::Result;
-use super::judge::DockerJudge;
 use super::judge::Judge;
 use super::GitTarget;
 use chrono::TimeZone;
@@ -51,7 +50,7 @@ impl Stage {
                 debug!(
                     "{}",
                     String::from_utf8(output.stderr)
-                        .unwrap_or("couldn't display command output".into())
+                        .unwrap_or_else(|_| "couldn't display command output".into())
                 );
                 None
             }

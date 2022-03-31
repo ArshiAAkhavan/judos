@@ -1,5 +1,4 @@
 use crossbeam::channel;
-use env_logger;
 use judos::pipeline::Pipeline;
 use log::info;
 fn main() {
@@ -14,6 +13,5 @@ fn main() {
             .expect("unable to send sigkill, you might as well panic!");
     })
     .expect("unable to set SIGINT handler");
-    // println!("{p:#?}");
     p.run(srx);
 }
