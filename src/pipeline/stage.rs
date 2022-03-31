@@ -17,7 +17,7 @@ pub struct Stage {
     pub name: String,
 
     deadline: Deadline,
-    judge: DockerJudge,
+    judge: Box<dyn Judge>,
     path: PathBuf,
 }
 

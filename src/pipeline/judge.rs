@@ -1,9 +1,9 @@
-use std::fmt::Display;
+use std::fmt::{Display, Debug};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use log::{error, warn};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::error::{PipelineError, Result};
 
@@ -37,17 +37,19 @@ impl GitTarget {
     }
 }
 
-pub trait Judge {
+#[typetag::serde]
+pub trait Judge: Send + Sync + Debug {
     fn judge(&self, target: &GitTarget, from_path: &Path) -> Result<f64>;
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DockerJudge {
     image: String,
     copy_to: PathBuf,
     result_path: PathBuf,
 }
 
+#[typetag::serde]
 impl Judge for DockerJudge {
     fn judge(&self, target: &GitTarget, from_path: &Path) -> Result<f64> {
         // ./scripts/judge.sh {self.image} {repo_url} {self.path} {self.copy_to} {self.result_path}
