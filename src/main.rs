@@ -1,6 +1,8 @@
 use crossbeam::channel;
-use judos::pipeline::Pipeline;
 use log::info;
+
+use judos::Pipeline;
+
 fn main() {
     env_logger::init();
     info!("rendering config files");

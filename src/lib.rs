@@ -1,3 +1,6 @@
-pub mod pipeline;
-pub mod judge;
-pub mod error;
+mod pipeline;
+mod judge;
+mod error;
+
+pub use pipeline::Pipeline;
+
