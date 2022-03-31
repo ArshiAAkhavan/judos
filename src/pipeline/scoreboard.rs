@@ -1,8 +1,9 @@
 use std::{path::PathBuf, process::Command};
 
-use super::judge::GitTarget;
 use log::{debug, info, warn};
 use serde::Deserialize;
+
+use crate::judge::GitTarget;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]

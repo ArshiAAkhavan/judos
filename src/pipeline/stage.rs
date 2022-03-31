@@ -1,12 +1,12 @@
 use std::{path::PathBuf, process::Command};
 
-use super::error::Result;
-use super::judge::Judge;
-use super::GitTarget;
 use chrono::TimeZone;
 use chrono::{DateTime, Local};
 use log::{debug, info};
 use serde::{de, Deserialize, Deserializer};
+
+use crate::judge::{GitTarget, Judge};
+use crate::error::Result;
 
 const POLLING_SCRIPT_FILEPATH: &str = "./scripts/retard_polling.sh";
 
