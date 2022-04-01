@@ -11,6 +11,7 @@ GIT_URL=$2
 COPY_FROM=$DIR/$3
 TARGET_DIR_IN_IMAGE=$4
 RESULT_PATH=$5
+COMMIT=$6
 
 
 function log {
@@ -18,7 +19,7 @@ function log {
 }
 # clone the repo
 git clone $GIT_URL $DIR 1>/dev/null
-commit_hash=$(cd $DIR && env -i git log --format="%h" | head -n1)
+git checkout $COMMIT
 
 # copy repo to judge image
 cid=`docker container create $IMAGE_NAME` 
@@ -43,7 +44,6 @@ cd /
 rm -rf $DIR
 
 # return judge logs as output
-echo $commit_hash
 docker logs $cid 
 
 # delete judge container

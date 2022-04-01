@@ -17,20 +17,20 @@ function log {
 if [ -d $REPO_DIR_ABSOLUTE ];then
   log "repo was already there"
   cd $REPO_DIR_ABSOLUTE
-  git pull
+  git pull 1>&2
   if [ $? -eq 128 ]; then
     log "merge accured temprory delete dir untill fix is ready"
     cd ../
     rm -rf $REPO_DIR_ABSOLUTE
     cd $TMP_DIR
-    git clone $GIT_URL
+    git clone $GIT_URL 1>&2
     cd $REPO_DIR_ABSOLUTE
   fi
 
 else
   log "first time encountering repo"
   cd $TMP_DIR
-  git clone $GIT_URL
+  git clone $GIT_URL 1>&2
   cd $REPO_DIR_ABSOLUTE
 fi
 
@@ -54,4 +54,5 @@ log latest_commit is $latest_commit
 log greater is       $greater
 
 exit_code=$((greater - latest_commit))
+env -i git log --format='%h' --date=raw --invert-grep --author=$(git config user.name) --follow -- ./ | awk '{print$1}' | head -n1
 exit $exit_code
