@@ -5,8 +5,8 @@ use chrono::{DateTime, Local};
 use log::{debug, info};
 use serde::{de, Deserialize, Deserializer};
 
-use crate::judge::{GitTarget, Judge};
 use crate::error::Result;
+use crate::judge::{GitTarget, Judge};
 
 const POLLING_SCRIPT_FILEPATH: &str = "./scripts/retard_polling.sh";
 
@@ -15,6 +15,7 @@ const POLLING_SCRIPT_FILEPATH: &str = "./scripts/retard_polling.sh";
 pub struct Stage {
     pub name: String,
 
+    #[serde(flatten)]
     deadline: Deadline,
     judge: Box<dyn Judge>,
     path: PathBuf,
@@ -24,8 +25,10 @@ pub struct Stage {
 #[serde(rename_all = "kebab-case")]
 struct Deadline {
     #[serde(deserialize_with = "parse_date_from_costume_string")]
+    #[serde(rename = "start")]
     from: DateTime<Local>,
     #[serde(deserialize_with = "parse_date_from_costume_string")]
+    #[serde(rename = "end")]
     to: DateTime<Local>,
 }
 
