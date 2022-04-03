@@ -1,7 +1,12 @@
-pub type Result<T> = std::result::Result<T, PipelineError>;
+/// comment 1
+pub type Result<T> = std::result::Result<T, JudosError>;
+
 
 #[derive(Debug)]
-pub enum PipelineError {
+pub enum JudosError {
+    ///comment 4
     TriggerError,
+    ///comment 5
     MalformedOutput,
 }
+

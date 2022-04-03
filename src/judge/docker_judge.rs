@@ -6,7 +6,7 @@ use log::{error,warn};
 use super::Judge;
 use super::GitTarget;
 
-use crate::error::{PipelineError, Result};
+use crate::error::{JudosError, Result};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DockerJudge {
@@ -33,12 +33,12 @@ impl Judge for DockerJudge {
         match output.status.success() {
             true => String::from_utf8(output.stdout)
                 .map(|s| s.trim().parse::<f64>())
-                .map_err(|_| PipelineError::MalformedOutput)?
-                .map_err(|_| PipelineError::MalformedOutput),
+                .map_err(|_| JudosError::MalformedOutput)?
+                .map_err(|_| JudosError::MalformedOutput),
             false => {
                 warn!("running judge failed on ({target},{from_path:?})");
                 error!("{}", String::from_utf8(output.stderr).unwrap());
-                Err(PipelineError::TriggerError)
+                Err(JudosError::TriggerError)
             }
         }
     }
