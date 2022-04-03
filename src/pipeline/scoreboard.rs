@@ -21,7 +21,7 @@ impl Scoreboard {
             .arg(&self.scorefile)
             .arg(&self.repo)
             .arg(target.get_name())
-            .arg(format!("{grade:.1}"))
+            .arg(format!("{grade:.2}"))
             .arg(stage_name)
             .arg(&self.commitfile)
             .arg(&target.commit)
@@ -30,10 +30,10 @@ impl Scoreboard {
 
         match output.status.success() {
             true => {
-                info!("update score {grade:.1} for {target} on stage({stage_name})");
+                info!("update score {grade:.2} for {target} on stage({stage_name})");
             }
             false => {
-                warn!("failed to update score {grade:.1} for {target} on stage({stage_name})");
+                warn!("failed to update score {grade:.2} for {target} on stage({stage_name})");
             }
         }
         debug!(

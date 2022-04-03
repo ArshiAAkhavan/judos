@@ -120,7 +120,7 @@ impl Pipeline {
         match stage.trigger(&target) {
             Ok(grade) => {
                 println!(
-                    "[{}] {target} received score {grade:.1} for stage {}",
+                    "[{}] {target} received score {grade:.2} for stage {}",
                     Local::now(),
                     stage.name
                 );
