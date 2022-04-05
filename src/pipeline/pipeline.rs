@@ -103,7 +103,7 @@ impl Pipeline {
                         }
                         recv(wrx) -> work => {
                             let work = work.unwrap();
-                            info!("worker {i} recieved [judge] order on {work}");
+                            debug!("worker {i} recieved [judge] order on {work}");
                             self.judge(work,&ongoing);
                         }
                     }
@@ -129,7 +129,7 @@ impl Pipeline {
         {
             let mut ongoing_guard = ongoing.lock().unwrap();
             if (*ongoing_guard).contains(&target) {
-                info!("another thread is working on {target}");
+                debug!("another thread is working on {target}");
                 return;
             } else {
                 // add target to the ongoing list
