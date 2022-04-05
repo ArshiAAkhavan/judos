@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 
-#[derive(Debug)]
+#[derive(Debug,Hash,Eq,PartialEq,Clone)]
 pub struct GitTarget {
     pub url: String,
     pub commit: String,

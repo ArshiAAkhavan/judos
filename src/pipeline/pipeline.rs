@@ -1,4 +1,9 @@
-use std::{fmt::Display, time};
+use std::{
+    collections::HashSet,
+    fmt::Display,
+    sync::{Arc, Mutex},
+    time,
+};
 
 use chrono::Local;
 use crossbeam::{
@@ -10,9 +15,9 @@ use log::{debug, error, info, warn};
 use serde::Deserialize;
 
 //TODO: better place for CommitHash Type;
-use crate::judge::GitTarget;
 use super::Scoreboard;
 use super::Stage;
+use crate::judge::GitTarget;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -47,6 +52,7 @@ impl Pipeline {
         let (wtx, wrx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
         let (stx, srx) = channel::bounded::<()>(self.concurrency + 1);
+        let ongoing = Arc::new(Mutex::new(HashSet::new()));
 
         // poll_all thread
         let srx_pollall = srx.clone();
@@ -81,6 +87,7 @@ impl Pipeline {
             for i in 1..=self.concurrency {
                 let srx = srx.clone();
                 let prx = prx.clone();
+                let ongoing = Arc::clone(&ongoing);
                 let (wtx, wrx) = (wtx.clone(), wrx.clone());
                 info!("spawning working thread no.{i}");
                 s.spawn(move |_| loop {
@@ -97,7 +104,7 @@ impl Pipeline {
                         recv(wrx) -> work => {
                             let work = work.unwrap();
                             info!("worker {i} recieved [judge] order on {work}");
-                            self.judge(work);
+                            self.judge(work,&ongoing);
                         }
                     }
                 });
@@ -115,8 +122,20 @@ impl Pipeline {
             wtx.send(Work::new(target, stage)).unwrap()
         };
     }
-    fn judge(&self, work: Work<'_>) {
+    fn judge(&self, work: Work<'_>, ongoing: &Arc<Mutex<HashSet<GitTarget>>>) {
         let Work { target, stage } = work;
+
+        // make a scope so we can drop the guard afterwards
+        {
+            let mut ongoing_guard = ongoing.lock().unwrap();
+            if (*ongoing_guard).contains(&target) {
+                info!("another thread is working on {target}");
+                return;
+            } else {
+                // add target to the ongoing list
+                (*ongoing_guard).insert(target.clone());
+            }
+        }
         match stage.trigger(&target) {
             Ok(grade) => {
                 println!(
@@ -130,6 +149,8 @@ impl Pipeline {
                 error!("judge failed to run with the following error{e:?}")
             }
         }
+        // remove target from ongoing as its been done!
+        ongoing.lock().unwrap().remove(&target);
     }
     fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>) {
         // TODO: handle duplication better
@@ -146,4 +167,3 @@ impl Pipeline {
         }
     }
 }
-
