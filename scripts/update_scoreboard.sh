@@ -28,7 +28,7 @@ else
   git clone $GIT_URL
   cd $REPO_DIR_ABSOLUTE
 fi
-STAGE_ID=`cat $SCOREFILE_NAME| head -n1 | tr ',' '\n' | awk "/$STAGE_NAME/ {print FNR}"`
+STAGE_ID=`cat $SCOREFILE_NAME| head -n1 | tr ',' '\n' | awk "/^$STAGE_NAME$/ {print FNR}"`
 log "/^$STUDENT_ID,/s/[^,]*/$SCORE/$STAGE_ID" $SCOREFILE_NAME
 log "student_id=$STUDENT_ID"
 log "score=$SCORE"
