@@ -29,12 +29,18 @@ else
   cd $REPO_DIR_ABSOLUTE
 fi
 STAGE_ID=`cat $SCOREFILE_NAME| head -n1 | tr ',' '\n' | awk "/$STAGE_NAME/ {print FNR}"`
-echo "/^$STUDENT_ID,/s/[^,]*/$SCORE/$STAGE_ID" $SCOREFILE_NAME
+log "/^$STUDENT_ID,/s/[^,]*/$SCORE/$STAGE_ID" $SCOREFILE_NAME
+log "student_id=$STUDENT_ID"
+log "score=$SCORE"
+log "stage_id=$STAGE_ID"
+log "scorefile_name=$SCOREFILE_NAME"
+log "-i" "/^$STUDENT_ID,/s/[^,]*/$SCORE/$STAGE_ID" $SCOREFILE_NAME
+log "-i" "/^$STUDENT_ID,/s/[^,]*/$COMMIT/$STAGE_ID" $COMMITFILE_NAME
 sed -i "/^$STUDENT_ID,/s/[^,]*/$SCORE/$STAGE_ID" $SCOREFILE_NAME
 sed -i "/^$STUDENT_ID,/s/[^,]*/$COMMIT/$STAGE_ID" $COMMITFILE_NAME
 
 
-git commit -am "Update scoreboard for user $STUDENT_ID and stage $STAGE_ID"
+git commit -am "Update scoreboard for user $STUDENT_ID and stage $STAGE_NAME"
 
 git push
 
