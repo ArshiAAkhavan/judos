@@ -1,9 +1,4 @@
-use std::{
-    collections::HashSet,
-    fmt::Display,
-    sync::{Arc, Mutex},
-    time,
-};
+use std::{collections::HashSet, fmt::Display, time};
 
 use chrono::Local;
 use crossbeam::{
@@ -50,12 +45,13 @@ impl<'a> Display for Work<'a> {
 impl Pipeline {
     pub fn run(&self, sig_in: Receiver<()>) {
         let (wtx, wrx) = channel::unbounded();
+        let (dtx, drx) = channel::unbounded();
         let (ptx, prx) = channel::unbounded();
         let (stx, srx) = channel::bounded::<()>(self.concurrency + 1);
-        let ongoing = Arc::new(Mutex::new(HashSet::new()));
 
-        // poll_all thread
+        // for poll_all thread
         let srx_pollall = srx.clone();
+
         crossbeam::scope(|s| {
             info!("spawning signal handler thread");
             s.spawn(|_| {
@@ -71,12 +67,16 @@ impl Pipeline {
             info!("spawning the poll_all thread");
             s.spawn(|_| {
                 let interval = channel::tick(time::Duration::from_secs(self.poll_interval as u64));
+                let mut ongoing = HashSet::new();
                 loop {
                     select! {
                         recv(interval) -> _ticked => {
                             info!("polling...");
-                            self.poll_all(&ptx);
+                            self.poll_all(&ptx,&mut ongoing);
                         },
+                        recv(drx) -> target => {
+                            ongoing.remove(&target.unwrap());
+                        }
                         recv(srx_pollall) -> _sig => {
                             error!("poll_all thread recieved exit signal, exiting");
                             return;
@@ -87,7 +87,7 @@ impl Pipeline {
             for i in 1..=self.concurrency {
                 let srx = srx.clone();
                 let prx = prx.clone();
-                let ongoing = Arc::clone(&ongoing);
+                let dtx = dtx.clone();
                 let (wtx, wrx) = (wtx.clone(), wrx.clone());
                 info!("spawning working thread no.{i}");
                 s.spawn(move |_| loop {
@@ -99,12 +99,12 @@ impl Pipeline {
                         recv(prx) -> work => {
                             let work = work.unwrap();
                             debug!("thread {i} received [poll] order on {work}");
-                            self.poll(work,&wtx);
+                            self.poll(work, &wtx, &dtx);
                         }
                         recv(wrx) -> work => {
                             let work = work.unwrap();
                             debug!("worker {i} recieved [judge] order on {work}");
-                            self.judge(work,&ongoing);
+                            self.judge(work, &dtx);
                         }
                     }
                 });
@@ -112,30 +112,27 @@ impl Pipeline {
         })
         .unwrap();
     }
-    fn poll<'a>(&self, work: Work<'a>, wtx: &Sender<Work<'a>>) {
-        let Work { target, stage } = work;
-        if let Some(target) = stage.poll(target) {
-            info!(
-                "poll resulted in ({},{target}), pushing to work queue...",
-                stage.name
-            );
-            wtx.send(Work::new(target, stage)).unwrap()
-        };
-    }
-    fn judge(&self, work: Work<'_>, ongoing: &Arc<Mutex<HashSet<GitTarget>>>) {
+    fn poll<'a>(&self, work: Work<'a>, wtx: &Sender<Work<'a>>, dtx: &Sender<String>) {
         let Work { target, stage } = work;
 
-        // make a scope so we can drop the guard afterwards
-        {
-            let mut ongoing_guard = ongoing.lock().unwrap();
-            if (*ongoing_guard).contains(&target) {
-                debug!("another thread is working on {target}");
-                return;
-            } else {
-                // add target to the ongoing list
-                (*ongoing_guard).insert(target.clone());
+        //TODO: extra allocation acours here
+        let repo_url = target.url.clone();
+
+        match stage.poll(target) {
+            Some(target) => {
+                info!(
+                    "poll resulted in ({},{target}), pushing to work queue...",
+                    stage.name
+                );
+                wtx.send(Work::new(target, stage)).unwrap();
             }
-        }
+            None => {
+                dtx.send(repo_url).unwrap();
+            }
+        };
+    }
+    fn judge(&self, work: Work<'_>, dtx: &Sender<String>) {
+        let Work { target, stage } = work;
         match stage.trigger(&target) {
             Ok(grade) => {
                 println!(
@@ -148,21 +145,21 @@ impl Pipeline {
             Err(e) => {
                 error!("judge failed to run with the following error{e:?}")
             }
-        }
-        // remove target from ongoing as its been done!
-        ongoing.lock().unwrap().remove(&target);
+        };
+        dtx.send(target.url).unwrap();
     }
-    fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>) {
-        // TODO: handle duplication better
-        if !ptx.is_empty() {
-            debug!("last poll is not finished yet!");
-            return;
-        }
+
+    fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>, ongoing: &'_ mut HashSet<String>) {
         for repo in &self.repos {
             for stage in &self.stages {
+                let target = GitTarget::repo(repo.clone());
+                if ongoing.contains(&target.url) {
+                    continue;
+                }
                 debug!("marking ({repo},{}) as a candidate", stage.name);
                 ptx.send(Work::new(GitTarget::repo(repo.clone()), stage))
                     .unwrap();
+                ongoing.insert(target.url);
             }
         }
     }
