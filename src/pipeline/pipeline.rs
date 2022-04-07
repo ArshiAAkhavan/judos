@@ -14,17 +14,6 @@ use super::Scoreboard;
 use super::Stage;
 use crate::judge::GitTarget;
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct Pipeline {
-    name: String,
-    poll_interval: u32,
-    concurrency: usize,
-    log_level: String,
-    scoreboard: Scoreboard,
-    stages: Vec<Stage>,
-    repos: Vec<String>,
-}
 
 #[derive(Debug)]
 struct Work<'a> {
@@ -40,6 +29,18 @@ impl<'a> Display for Work<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Work<{},{}>", self.stage.name, self.target)
     }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct Pipeline {
+    name: String,
+    poll_interval: u32,
+    concurrency: usize,
+    log_level: String,
+    scoreboard: Scoreboard,
+    stages: Vec<Stage>,
+    repos: Vec<String>,
 }
 
 impl Pipeline {
