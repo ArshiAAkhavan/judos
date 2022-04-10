@@ -76,9 +76,7 @@ impl Pipeline {
                             self.poll_all(&ptx,&mut ongoing);
                         },
                         recv(drx) -> target => {
-                            let target=target.unwrap();
-                            info!("removing {} from ongoing",&target);
-                            ongoing.remove(&target);
+                            ongoing.remove(&target.unwrap());
                         }
                         recv(srx_pollall) -> _sig => {
                             error!("poll_all thread recieved exit signal, exiting");
@@ -130,7 +128,6 @@ impl Pipeline {
                 wtx.send(Work::new(target, stage)).unwrap();
             }
             None => {
-                info!("nothing chaned for {repo_url} sending to done!");
                 dtx.send(repo_url).unwrap();
             }
         };
@@ -150,7 +147,6 @@ impl Pipeline {
                 error!("judge failed to run with the following error{e:?}")
             }
         };
-        info!("judge finished for {} pushing to done", target.url);
         dtx.send(target.url).unwrap();
     }
 
@@ -164,7 +160,6 @@ impl Pipeline {
                 debug!("marking ({repo},{}) as a candidate", stage.name);
                 ptx.send(Work::new(GitTarget::repo(repo.clone()), stage))
                     .unwrap();
-                info!("{repo} is being inserted...");
                 ongoing.insert(target.url);
             }
         }
