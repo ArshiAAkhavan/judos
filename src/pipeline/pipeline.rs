@@ -14,7 +14,6 @@ use super::Scoreboard;
 use super::Stage;
 use crate::judge::GitTarget;
 
-
 #[derive(Debug)]
 struct Work<'a> {
     target: GitTarget,
@@ -76,7 +75,9 @@ impl Pipeline {
                             self.poll_all(&ptx,&mut ongoing);
                         },
                         recv(drx) -> target => {
-                            ongoing.remove(&target.unwrap());
+                            let target=target.unwrap();
+                            ongoing.remove(&target);
+                            info!("{} is going to be removed",target);
                         }
                         recv(srx_pollall) -> _sig => {
                             error!("poll_all thread recieved exit signal, exiting");
@@ -153,13 +154,14 @@ impl Pipeline {
     fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>, ongoing: &'_ mut HashSet<String>) {
         for repo in &self.repos {
             for stage in &self.stages {
-                let target = GitTarget::repo(repo.clone());
-                if ongoing.contains(&target.url) {
+                if ongoing.contains(repo) {
                     continue;
                 }
+                let target = GitTarget::repo(repo.clone());
                 debug!("marking ({repo},{}) as a candidate", stage.name);
                 ptx.send(Work::new(GitTarget::repo(repo.clone()), stage))
                     .unwrap();
+                info!("{} is going to be inserted in the set", target.url);
                 ongoing.insert(target.url);
             }
         }
