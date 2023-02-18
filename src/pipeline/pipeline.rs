@@ -9,7 +9,6 @@ use crossbeam::{
 use log::{debug, error, info, warn};
 use serde::Deserialize;
 
-//TODO: better place for CommitHash Type;
 use super::Scoreboard;
 use super::Stage;
 use crate::judge::GitTarget;
