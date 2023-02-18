@@ -36,12 +36,14 @@ impl Scoreboard {
                 warn!("failed to update score {grade:.2} for {target} on stage({stage_name})");
             }
         }
-        debug!(
+        //debug!(
+        info!(
             "{}",
             String::from_utf8(output.stdout)
                 .unwrap_or_else(|_| "stdout can not be displayed".into())
         );
-        debug!(
+        //debug!(
+        info!(
             "{}",
             String::from_utf8(output.stderr)
                 .unwrap_or_else(|_| "stderr can not be displayed".into())
