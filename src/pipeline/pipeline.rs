@@ -78,7 +78,7 @@ impl Pipeline {
                         recv(drx) -> target => {
                             let target=target.unwrap();
                             ongoing.remove(&target);
-                            info!("{} is going to be removed",target);
+                            info!("({},{}) is going to be removed",target.0,target.1);
                         }
                         recv(srx_pollall) -> _sig => {
                             error!("poll_all thread recieved exit signal, exiting");
@@ -115,7 +115,7 @@ impl Pipeline {
         })
         .unwrap();
     }
-    fn poll<'a>(&self, work: Work<'a>, wtx: &Sender<Work<'a>>, dtx: &Sender<String>) {
+    fn poll<'a>(&self, work: Work<'a>, wtx: &Sender<Work<'a>>, dtx: &Sender<(String, String)>) {
         let Work { target, stage } = work;
 
         //TODO: extra allocation acours here
@@ -130,11 +130,11 @@ impl Pipeline {
                 wtx.send(Work::new(target, stage)).unwrap();
             }
             None => {
-                dtx.send(repo_url).unwrap();
+                dtx.send((repo_url, stage.name.clone())).unwrap();
             }
         };
     }
-    fn judge(&self, work: Work<'_>, dtx: &Sender<String>) {
+    fn judge(&self, work: Work<'_>, dtx: &Sender<(String, String)>) {
         let Work { target, stage } = work;
         match stage.trigger(&target) {
             Ok(grade) => {
@@ -149,13 +149,13 @@ impl Pipeline {
                 error!("judge failed to run with the following error{e:?}")
             }
         };
-        dtx.send(target.url).unwrap();
+        dtx.send((target.url, stage.name.clone())).unwrap();
     }
 
-    fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>, ongoing: &'_ mut HashSet<String>) {
+    fn poll_all<'a>(&'a self, ptx: &Sender<Work<'a>>, ongoing: &'_ mut HashSet<(String, String)>) {
         for repo in &self.repos {
             for stage in &self.stages {
-                if ongoing.contains(repo) {
+                if ongoing.contains(&(repo.into(), stage.name.clone())) {
                     continue;
                 }
                 let target = GitTarget::repo(repo.clone());
@@ -163,7 +163,7 @@ impl Pipeline {
                 ptx.send(Work::new(GitTarget::repo(repo.clone()), stage))
                     .unwrap();
                 info!("{} is going to be inserted in the set", target.url);
-                ongoing.insert(target.url);
+                ongoing.insert((target.url, stage.name.clone()));
             }
         }
     }
