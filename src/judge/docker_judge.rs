@@ -1,10 +1,13 @@
-use std::{path::{PathBuf, Path}, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
-use serde::{Serialize, Deserialize};
-use log::{error,warn};
+use log::{error, info, warn};
+use serde::{Deserialize, Serialize};
 
-use super::Judge;
 use super::GitTarget;
+use super::Judge;
 
 use crate::error::{JudosError, Result};
 
@@ -30,6 +33,7 @@ impl Judge for DockerJudge {
             .arg(&target.commit)
             .output()
             .expect("failed to execute judge script");
+        info!("{}", String::from_utf8_lossy(&output.stdout));
         match output.status.success() {
             true => String::from_utf8(output.stdout)
                 .map(|s| s.trim().parse::<f64>())
