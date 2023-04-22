@@ -32,9 +32,11 @@ impl<'a> Display for Work<'a> {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Pipeline {
+    #[allow(unused)]
     name: String,
     poll_interval: u32,
     concurrency: usize,
+    #[allow(unused)]
     log_level: String,
     scoreboard: Scoreboard,
     stages: Vec<Stage>,
